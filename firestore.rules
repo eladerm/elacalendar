@@ -1,0 +1,35 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Permitimos lectura y escritura en las colecciones principales 
+    // para que el sistema de sesión personalizado funcione correctamente.
+    
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    
+    match /clients/{clientId} {
+      allow read, write: if true;
+    }
+    
+    match /services/{serviceId} {
+      allow read, write: if true;
+    }
+
+    match /events/{eventId} {
+      allow read, write: if true;
+    }
+    
+    match /activity_log/{logId} {
+        allow read, write: if true;
+    }
+    
+    // Regla por defecto para otros documentos
+    match /{path=**}/documents/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

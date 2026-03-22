@@ -1,0 +1,47 @@
+# dependencias
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# producción
+/ build
+
+# misc
+.DS_Store
+*.pem
+*.p12
+*.key
+*.crt
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+firebase-debug.log*
+
+# entorno
+.env
+.env.local
+.env*.local
+
+# vercel
+/.vercel
+
+# firebase
+.firebase/
+
+# backups
+*.zip
+*.tar.gz
+*.gz
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

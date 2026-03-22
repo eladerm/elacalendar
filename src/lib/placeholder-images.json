@@ -1,0 +1,52 @@
+{
+  "placeholderImages": [
+    {
+      "id": "landscape-1",
+      "description": "Montañas nevadas al atardecer",
+      "imageUrl": "https://picsum.photos/seed/mt1/1920/1080",
+      "imageHint": "mountain sunset"
+    },
+    {
+      "id": "landscape-2",
+      "description": "Bosque tropical neblinoso",
+      "imageUrl": "https://picsum.photos/seed/fr1/1920/1080",
+      "imageHint": "misty forest"
+    },
+    {
+      "id": "landscape-3",
+      "description": "Costa caribeña con palmeras",
+      "imageUrl": "https://picsum.photos/seed/be1/1920/1080",
+      "imageHint": "tropical beach"
+    },
+    {
+      "id": "landscape-4",
+      "description": "Lago cristalino en los alpes",
+      "imageUrl": "https://picsum.photos/seed/lk1/1920/1080",
+      "imageHint": "alpine lake"
+    },
+    {
+      "id": "landscape-5",
+      "description": "Desierto de dunas doradas",
+      "imageUrl": "https://picsum.photos/seed/ds1/1920/1080",
+      "imageHint": "desert dunes"
+    },
+    {
+      "id": "landscape-6",
+      "description": "Campo de lavanda al amanecer",
+      "imageUrl": "https://picsum.photos/seed/fl1/1920/1080",
+      "imageHint": "lavender field"
+    },
+    {
+      "id": "landscape-7",
+      "description": "Cascada en cañón profundo",
+      "imageUrl": "https://picsum.photos/seed/wf1/1920/1080",
+      "imageHint": "waterfall nature"
+    },
+    {
+      "id": "landscape-8",
+      "description": "Valle verde entre acantilados",
+      "imageUrl": "https://picsum.photos/seed/vl1/1920/1080",
+      "imageHint": "green valley"
+    }
+  ]
+}
