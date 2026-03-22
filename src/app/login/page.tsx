@@ -16,6 +16,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { cn } from '@/lib/utils';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'El campo es requerido.'),
@@ -27,6 +29,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [bgImage, setBgImage] = useState<string>('');
   const router = useRouter();
   
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -35,6 +38,12 @@ export default function LoginPage() {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
+
+  useEffect(() => {
+    // Selección aleatoria de fondo al cargar la página
+    const randomIndex = Math.floor(Math.random() * PlaceHolderImages.length);
+    setBgImage(PlaceHolderImages[randomIndex].imageUrl);
+  }, []);
 
   const captureInstantPhoto = async (): Promise<string | null> => {
     let stream: MediaStream | null = null;
@@ -117,49 +126,100 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#1c011e] via-[#3a023c] to-[#1a011d]">
-      <div className="absolute top-8 left-8 z-20 hidden md:block">
-        <h1 className="text-4xl font-black text-white italic tracking-tighter opacity-20">ÉLAPIEL</h1>
+    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center font-sans">
+      {/* Fondo Dinámico con Overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      />
+      <div className="absolute inset-0 bg-black/40 backdrop-brightness-75" />
+
+      {/* Marca en la esquina superior derecha */}
+      <div className="absolute top-6 right-8 z-30">
+        <span className="text-white font-black italic text-xl tracking-tighter opacity-90">ÉLAPIEL</span>
       </div>
 
+      {/* Cámara oculta para evidencia */}
       <div className="fixed -left-[9999px] top-0 opacity-0 pointer-events-none overflow-hidden">
         <video ref={videoRef} muted playsInline width="640" height="480" />
         <canvas ref={canvasRef} width="400" height="300" />
       </div>
 
-      <div className="container relative z-10 mx-auto flex items-center justify-center p-4">
-        <Card className="w-full max-w-sm border-0 bg-white/10 text-white backdrop-blur-xl shadow-2xl border-white/20">
-          <form onSubmit={handleSubmit(handleLogin)}>
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-black uppercase tracking-tight">Ingrese al sistema</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-6">
-              {error && (
-                <Alert variant="destructive" className="bg-red-500/20 text-red-200 border-red-500/30">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle className="font-bold">Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <div className="grid gap-2">
-                <Label htmlFor="identifier" className="font-bold uppercase text-[10px] tracking-widest text-white/80">ID Trabajador / Usuario</Label>
-                <Input id="identifier" type="text" {...register('identifier')} placeholder="Ej. 1001" className="border-white/20 bg-black/20 placeholder:text-white/30 focus:ring-primary h-11 font-bold" />
-                {errors.identifier && <p className="text-xs text-red-300 font-bold">{errors.identifier.message}</p>}
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password" title="password" className="font-bold uppercase text-[10px] tracking-widest text-white/80">Contraseña</Label>
-                <Input id="password" type="password" {...register('password')} placeholder="••••••••" className="border-white/20 bg-black/20 placeholder:text-white/30 focus:ring-primary h-11 font-bold" />
-                {errors.password && <p className="text-xs text-red-300 font-bold">{errors.password.message}</p>}
-              </div>
-               <div className="text-right -mt-4">
-                  <Link href="/forgot-password" passHref className="text-xs text-white/60 hover:text-white hover:underline transition-colors">¿Olvidaste tu contraseña?</Link>
-              </div>
-               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest py-6 text-sm shadow-xl shadow-primary/20" disabled={isSubmitting}>
-                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Entrar al Sistema'}
-              </Button>
-            </CardContent>
-          </form>
-        </Card>
+      <div className="container relative z-10 mx-auto px-4 h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
+          
+          {/* LADO IZQUIERDO: Branding */}
+          <div className="hidden lg:flex flex-col space-y-2 text-white animate-in fade-in slide-in-from-left-8 duration-700">
+            <h1 className="text-8xl font-black tracking-tighter flex items-baseline">
+              ÉLAPIEL<span className="text-[#eb2f96]">.</span>
+            </h1>
+            <p className="text-2xl font-bold opacity-90 tracking-tight">
+              Centro Estético & Depilación Láser
+            </p>
+            <p className="text-lg opacity-70 font-medium pt-8 max-w-md leading-relaxed">
+              Gestión inteligente de citas y control administrativo centralizado.
+            </p>
+          </div>
+
+          {/* LADO DERECHO: Tarjeta de Acceso */}
+          <div className="flex justify-center lg:justify-end animate-in fade-in slide-in-from-right-8 duration-700">
+            <Card className="w-full max-w-md border-white/10 bg-white/10 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] text-white overflow-hidden">
+              <form onSubmit={handleSubmit(handleLogin)} className="p-8 space-y-8">
+                <div className="text-center space-y-2">
+                  <CardTitle className="text-3xl font-black uppercase tracking-tight">Acceso Colaboradores</CardTitle>
+                  <p className="text-[11px] font-bold uppercase text-white/60 tracking-wider">Capture su evidencia de ingreso.</p>
+                </div>
+
+                {error && (
+                  <Alert variant="destructive" className="bg-red-500/20 text-red-200 border-red-500/30">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="font-bold text-xs">{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="identifier" className="font-bold uppercase text-[10px] tracking-widest text-white/70 ml-1">ID Trabajador / Usuario</Label>
+                    <Input 
+                      id="identifier" 
+                      type="text" 
+                      {...register('identifier')} 
+                      placeholder="Ej. 1001" 
+                      className="border-white/10 bg-black/30 placeholder:text-white/20 focus:ring-[#eb2f96] h-12 font-bold text-lg" 
+                    />
+                    {errors.identifier && <p className="text-[10px] text-red-300 font-bold uppercase ml-1">{errors.identifier.message}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="font-bold uppercase text-[10px] tracking-widest text-white/70 ml-1">Contraseña</Label>
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      {...register('password')} 
+                      placeholder="••••••••" 
+                      className="border-white/10 bg-black/30 placeholder:text-white/20 focus:ring-[#eb2f96] h-12 font-bold text-lg" 
+                    />
+                    {errors.password && <p className="text-[10px] text-red-300 font-bold uppercase ml-1">{errors.password.message}</p>}
+                    
+                    <div className="text-right">
+                      <Link href="/forgot-password" disable-ai-hint className="text-[10px] text-white/50 hover:text-white transition-colors font-bold uppercase hover:underline">
+                        ¿Olvidaste tu contraseña?
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full bg-[#eb2f96] hover:bg-[#d42a88] text-white font-black uppercase tracking-[0.2em] py-7 text-sm shadow-2xl transition-all active:scale-[0.98]" 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : 'Entrar al Sistema'}
+                </Button>
+              </form>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
