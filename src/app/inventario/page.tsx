@@ -301,7 +301,8 @@ export default function InventarioPage() {
   };
 
   const handleExportAllInventory = async () => {
-    if (!isAdmin || isExporting) return;
+    const isAdminUser = user?.role === 'administrador';
+    if (!isAdminUser || isExporting) return;
     setIsExporting(true);
     try {
       const snapshot = await getDocs(collection(db, 'inventory'));
@@ -406,7 +407,8 @@ export default function InventarioPage() {
   };
 
   const handleDeleteAllInventory = () => {
-    if (!isAdmin || !user || isDeletingAll) return;
+    const isAdminUser = user?.role === 'administrador';
+    if (!isAdminUser || !user || isDeletingAll) return;
     
     setIsDeletingAll(true);
     getDocs(query(collection(db, 'inventory'))).then((snapshot) => {
@@ -603,7 +605,7 @@ export default function InventarioPage() {
     }
   };
 
-  const isAdmin = user?.role === 'administrador';
+  const isAdminUser = user?.role === 'administrador';
   const branchColor = selectedBranch === 'Matriz' ? 'text-pink-600' : 'text-primary';
   const branchBg = selectedBranch === 'Matriz' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-primary hover:bg-primary/90';
 
@@ -629,7 +631,7 @@ export default function InventarioPage() {
               </Button>
             </div>
 
-            {isAdmin && (
+            {isAdminUser && (
               <div className="flex items-center gap-2">
                 <Button variant="outline" onClick={() => { setIsDeliveryOpen(true); }} className="h-9 gap-2 border-blue-200 text-blue-700 font-bold">
                   <Truck className="h-4 w-4" /> Entrega
@@ -849,14 +851,14 @@ export default function InventarioPage() {
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem onClick={() => { 
                                     setSelectedProductForActivity({ 
-                                      name: firstVariant.name, 
+                                      name: group.name, 
                                       ids: [firstVariant.cabinaDoc?.id, firstVariant.bodegaDoc?.id].filter((id): id is string => !!id)
                                     }); 
                                     setIsActivityOpen(true); 
                                   }}>
                                     <History className="mr-2 h-4 w-4" /> Historial
                                   </DropdownMenuItem>
-                                  {isAdmin && (
+                                  {isAdminUser && (
                                     <>
                                       <DropdownMenuItem onClick={() => { setEditingProduct(firstVariant.bodegaDoc || firstVariant.cabinaDoc!); setIsFormOpen(true); }}><Pencil className="mr-2 h-4 w-4" /> Editar</DropdownMenuItem>
                                       <DropdownMenuItem className="text-destructive font-bold" onClick={() => {
@@ -999,7 +1001,7 @@ export default function InventarioPage() {
                                   }}>
                                     <History className="mr-2 h-4 w-4" /> Historial
                                   </DropdownMenuItem>
-                                  {isAdmin && (
+                                  {isAdminUser && (
                                     <>
                                       <DropdownMenuItem onClick={() => { setEditingProduct(variant.bodegaDoc || variant.cabinaDoc!); setIsFormOpen(true); }}><Pencil className="mr-2 h-4 w-4" /> Editar</DropdownMenuItem>
                                       <DropdownMenuItem className="text-destructive font-bold" onClick={() => {

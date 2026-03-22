@@ -169,6 +169,16 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
     }
   }, [branch]);
 
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { 
+        'application/vnd.ms-excel': ['.xls'],
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+    },
+    maxFiles: 1,
+    disabled: isParsing || isSaving
+  });
+
   const handleConfirmImport = async () => {
     if (processedData.length === 0 || isSaving) return;
     setIsSaving(true);
@@ -179,10 +189,10 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
         const existingProducts = inventorySnap.docs.map(d => ({ id: d.id, ...d.data() } as Product));
         
         const settingsRef = doc(db, 'inventory_config', 'settings');
-        const settingsSnap = await getDocs(query(collection(db, 'inventory_config'), limit(1)));
+        const settingsSnapRaw = await getDocs(query(collection(db, 'inventory_config'), limit(1)));
         let lastCodeNumber = 0;
-        if (!settingsSnap.empty) {
-            lastCodeNumber = settingsSnap.docs.find(d => d.id === 'settings')?.data()?.lastCodeNumber || 0;
+        if (!settingsSnapRaw.empty) {
+            lastCodeNumber = settingsSnapRaw.docs.find(d => d.id === 'settings')?.data()?.lastCodeNumber || 0;
         }
 
         const CHUNK_SIZE = 100;
