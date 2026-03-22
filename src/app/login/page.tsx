@@ -14,7 +14,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -28,19 +27,10 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [bgImage, setBgImage] = useState('');
   const router = useRouter();
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const landscapes = PlaceHolderImages.filter(img => img.id.startsWith('landscape-'));
-    if (landscapes.length > 0) {
-      const randomImg = landscapes[Math.floor(Math.random() * landscapes.length)];
-      setBgImage(randomImg.imageUrl);
-    }
-  }, []);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -127,11 +117,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div 
-      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden transition-all duration-1000 bg-cover bg-center"
-      style={{ backgroundImage: bgImage ? `url(${bgImage})` : 'none', backgroundColor: '#1c011e' }}
-    >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#1c011e] via-[#3a023c] to-[#1a011d]">
+      <div className="absolute top-8 left-8 z-20 hidden md:block">
+        <h1 className="text-4xl font-black text-white italic tracking-tighter opacity-20">ÉLAPIEL</h1>
+      </div>
 
       <div className="fixed -left-[9999px] top-0 opacity-0 pointer-events-none overflow-hidden">
         <video ref={videoRef} muted playsInline width="640" height="480" />

@@ -104,7 +104,6 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
                 throw new Error("El archivo no contiene datos en ninguna pestaña.");
             }
 
-            // DEDUPLICACIÓN INTERNA: Usamos un Map para asegurar que no haya duplicados en el mismo archivo
             const itemsMap = new Map<string, Partial<Product>>();
 
             allRows.forEach(row => {
@@ -128,7 +127,6 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
                 const locationStr = locKey ? String(row[locKey]).toUpperCase().trim() : 'BODEGA';
                 const finalLocation: 'BODEGA' | 'ESTABLECIMIENTO' = (locationStr.includes('CABINA') || locationStr.includes('ESTABLECIMIENTO')) ? 'ESTABLECIMIENTO' : 'BODEGA';
 
-                // Clave única para deduplicar: Nombre + Marca + Sede + Ubicación
                 const uniqueKey = `${name}|${brand}|${branch}|${finalLocation}`;
 
                 const item: Partial<Product> = {
@@ -148,7 +146,6 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
                     type: 'GENERAL'
                 };
 
-                // Si ya existe en el archivo, sobrescribimos con el último registro encontrado (que suele ser el más actualizado)
                 itemsMap.set(uniqueKey, item);
             });
 
@@ -184,7 +181,6 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
     setIsSaving(true);
 
     try {
-        // 1. Cargar inventario actual y configuración de códigos
         const inventorySnap = await getDocs(collection(db, 'inventory'));
         const existingProducts = inventorySnap.docs.map(d => ({ id: d.id, ...d.data() } as Product));
         
@@ -206,7 +202,6 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
         for (const chunk of chunks) {
             const batch = writeBatch(db);
             for (const item of chunk) {
-                // Buscar si existe exactamente en esta sede, marca y ubicación para actualizar
                 const exists = existingProducts.find(p => 
                     p.name.toUpperCase().trim() === item.name?.toUpperCase().trim() && 
                     (p.brand || 'GENÉRICO').toUpperCase().trim() === (item.brand || 'GENÉRICO').toUpperCase().trim() && 
@@ -230,7 +225,6 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
                 } else {
                     const docRef = doc(collection(db, 'inventory'));
                     
-                    // Si no tiene código el Excel, generamos uno nuevo
                     let finalCode = item.code;
                     if (!finalCode) {
                         lastCodeNumber++;
@@ -246,7 +240,6 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
                 }
             }
             
-            // Si generamos códigos nuevos, actualizamos el contador global
             if (newCodesAdded > 0) {
                 batch.update(settingsRef, { lastCodeNumber });
             }

@@ -1034,7 +1034,7 @@ export default function InventarioPage() {
         </TooltipProvider>
       </main>
 
-      <Dialog open={isTransferOpen} onOpenChange={isTransferOpen => !isTransferOpen && setIsTransferOpen(false)}>
+      <Dialog open={isTransferOpen} onOpenChange={setIsTransferOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="uppercase font-black flex items-center gap-2">
