@@ -161,7 +161,7 @@ export default function LoginPage() {
           <Card className="w-full max-w-sm border-0 bg-white/10 text-white backdrop-blur-xl shadow-2xl border-white/20">
             <form onSubmit={handleSubmit(handleLogin)}>
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-black uppercase tracking-tight">Acceso Colaboradores</CardTitle>
+                <CardTitle className="text-2xl font-black uppercase tracking-tight">Ingrese al sistema</CardTitle>
                 <CardDescription className="text-white/70 font-medium">Capture su evidencia de ingreso.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
