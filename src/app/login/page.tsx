@@ -161,7 +161,6 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit(handleLogin)}>
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-black uppercase tracking-tight">Ingrese al sistema</CardTitle>
-                <CardDescription className="text-white/70 font-medium">Capture su evidencia de ingreso.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
                 {error && (
