@@ -154,7 +154,6 @@ export default function LoginPage() {
             </h1>
             <p className="text-xl font-light text-white/90">Centro Estético & Depilación Láser</p>
           </div>
-          <p className="mt-4 text-lg text-white/80 max-w-lg">Gestión inteligente de citas y control administrativo centralizado.</p>
         </div>
         
         <div className="flex items-center justify-center">
