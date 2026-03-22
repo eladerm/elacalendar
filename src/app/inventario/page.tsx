@@ -304,7 +304,6 @@ export default function InventarioPage() {
     if (!isAdmin || isExporting) return;
     setIsExporting(true);
     try {
-      // 1. Obtener datos de inventario
       const snapshot = await getDocs(collection(db, 'inventory'));
       const allData = snapshot.docs.map(docSnap => {
         const p = docSnap.data() as Product;
@@ -328,18 +327,16 @@ export default function InventarioPage() {
         };
       });
 
-      // 2. Obtener catálogos oficiales para las listas desplegables
       const settingsSnap = await getDoc(doc(db, 'inventory_config', 'settings'));
-      const categories = settingsSnap.exists() ? (settingsSnap.data().categories || []).sort() : [];
-      const units = settingsSnap.exists() ? (settingsSnap.data().units || []).sort() : [];
+      const settingsData = settingsSnap.exists() ? settingsSnap.data() : {};
+      const categories = (settingsData.categories || []).sort();
+      const units = (settingsData.units || []).sort();
       const branches = ['Matriz', 'Valle'];
       const locations = ['BODEGA', 'ESTABLECIMIENTO'];
 
-      // 3. Crear Workbook con ExcelJS
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('INVENTARIO_ELAPIEL');
       
-      // Hoja de Referencia (para las listas desplegables)
       const refSheet = workbook.addWorksheet('RefData');
       categories.forEach((cat: string, i: number) => refSheet.getCell(`A${i + 1}`).value = cat);
       branches.forEach((b: string, i: number) => refSheet.getCell(`B${i + 1}`).value = b);
@@ -347,7 +344,6 @@ export default function InventarioPage() {
       units.forEach((u: string, i: number) => refSheet.getCell(`D${i + 1}`).value = u);
       refSheet.state = 'hidden';
 
-      // Configurar encabezados
       worksheet.columns = [
         { header: 'CODIGO', key: 'code', width: 12 },
         { header: 'PRODUCTO', key: 'name', width: 35 },
@@ -367,15 +363,11 @@ export default function InventarioPage() {
         { header: 'OBSERVACIONES', key: 'obs', width: 40 },
       ];
 
-      // Estilo de encabezado
       worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
       worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDB2777' } };
 
-      // Agregar filas y validaciones
       allData.forEach((item, idx) => {
         const row = worksheet.addRow(item);
-        
-        // Validación de CATEGORIA
         if (categories.length > 0) {
           row.getCell('category').dataValidation = {
             type: 'list',
@@ -383,22 +375,16 @@ export default function InventarioPage() {
             formulae: [`RefData!$A$1:$A$${categories.length}`]
           };
         }
-
-        // Validación de SEDE
         row.getCell('branch').dataValidation = {
           type: 'list',
           allowBlank: true,
           formulae: [`RefData!$B$1:$B$${branches.length}`]
         };
-
-        // Validación de UBICACION
         row.getCell('location').dataValidation = {
           type: 'list',
           allowBlank: true,
           formulae: [`RefData!$C$1:$C$${locations.length}`]
         };
-
-        // Validación de UNIDAD
         if (units.length > 0) {
           row.getCell('unit').dataValidation = {
             type: 'list',
@@ -408,11 +394,9 @@ export default function InventarioPage() {
         }
       });
 
-      // Generar archivo
       const buffer = await workbook.xlsx.writeBuffer();
       saveAs(new Blob([buffer]), `Inventario_Completo_ElaPiel_${new Date().toISOString().split('T')[0]}.xlsx`);
-      
-      toast({ title: "Exportación Exitosa", description: `${allData.length} registros exportados con sus catálogos oficiales.` });
+      toast({ title: "Exportación Exitosa", description: `${allData.length} registros exportados.` });
     } catch (e) {
       console.error("Error exportando:", e);
       toast({ title: "Error al exportar", variant: "destructive" });
@@ -733,7 +717,7 @@ export default function InventarioPage() {
                             >
                               <AvatarImage src={firstVariant.imageUrl} className="object-cover" />
                               <AvatarFallback className="bg-muted text-muted-foreground rounded-md text-[8px] font-black">
-                                <Camera className="w-4 h-4 opacity-20" />
+                                <Camera className="w-6 h-6 opacity-20" />
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col">
@@ -1072,7 +1056,7 @@ export default function InventarioPage() {
                 <Label className="font-black text-xs uppercase text-primary">¿Tuvo novedades con el producto?</Label>
                 <RadioGroup 
                   value={hasTransferIssues} 
-                  onOpenChange={(val: 'no' | 'si') => setHasTransferIssues(val)}
+                  onValueChange={(val: 'no' | 'si') => setHasTransferIssues(val)}
                   className="flex items-center gap-4"
                 >
                   <div className="flex items-center space-x-2">
