@@ -40,7 +40,6 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-    // Selección aleatoria de fondo al cargar la página
     const randomIndex = Math.floor(Math.random() * PlaceHolderImages.length);
     setBgImage(PlaceHolderImages[randomIndex].imageUrl);
   }, []);
@@ -127,19 +126,12 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center font-sans">
-      {/* Fondo Dinámico con Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
       <div className="absolute inset-0 bg-black/40 backdrop-brightness-75" />
 
-      {/* Marca en la esquina superior derecha */}
-      <div className="absolute top-6 right-8 z-30">
-        <span className="text-white font-black italic text-xl tracking-tighter opacity-90">ÉLAPIEL</span>
-      </div>
-
-      {/* Cámara oculta para evidencia */}
       <div className="fixed -left-[9999px] top-0 opacity-0 pointer-events-none overflow-hidden">
         <video ref={videoRef} muted playsInline width="640" height="480" />
         <canvas ref={canvasRef} width="400" height="300" />
@@ -148,26 +140,17 @@ export default function LoginPage() {
       <div className="container relative z-10 mx-auto px-4 h-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
           
-          {/* LADO IZQUIERDO: Branding */}
           <div className="hidden lg:flex flex-col space-y-2 text-white animate-in fade-in slide-in-from-left-8 duration-700">
             <h1 className="text-8xl font-black tracking-tighter flex items-baseline">
               ÉLAPIEL<span className="text-[#eb2f96]">.</span>
             </h1>
-            <p className="text-2xl font-bold opacity-90 tracking-tight">
-              Centro Estético & Depilación Láser
-            </p>
-            <p className="text-lg opacity-70 font-medium pt-8 max-w-md leading-relaxed">
-              Gestión inteligente de citas y control administrativo centralizado.
-            </p>
           </div>
 
-          {/* LADO DERECHO: Tarjeta de Acceso */}
           <div className="flex justify-center lg:justify-end animate-in fade-in slide-in-from-right-8 duration-700">
             <Card className="w-full max-w-md border-white/10 bg-white/10 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] text-white overflow-hidden">
               <form onSubmit={handleSubmit(handleLogin)} className="p-8 space-y-8">
                 <div className="text-center space-y-2">
-                  <CardTitle className="text-3xl font-black uppercase tracking-tight">Acceso Colaboradores</CardTitle>
-                  <p className="text-[11px] font-bold uppercase text-white/60 tracking-wider">Capture su evidencia de ingreso.</p>
+                  <CardTitle className="text-3xl font-black uppercase tracking-tight">Ingrese al sistema</CardTitle>
                 </div>
 
                 {error && (

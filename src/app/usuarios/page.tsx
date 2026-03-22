@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import type { User as UserType } from '@/lib/types';
 import { SiteHeader } from '@/components/site-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { db } from '@/lib/firebase';
 import {
   collection,

@@ -38,7 +38,6 @@ interface InventoryImportDialogProps {
   onImportSuccess: () => void;
 }
 
-// Mapeo flexible de encabezados para inventario
 const fieldMappings = {
     name: ['nombre', 'producto', 'insumo', 'item', 'descripcion', 'artículo'],
     brand: ['marca', 'proveedor', 'laboratorio', 'brand'],
