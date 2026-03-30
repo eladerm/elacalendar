@@ -222,7 +222,7 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
                         lastUpdated: Timestamp.now()
                     }));
                 } else {
-                    const docRef = doc(collection(db, 'inventory'));
+                    const docRef = doc(collection(db, "inventory"));
                     
                     let finalCode = item.code;
                     if (!finalCode) {
