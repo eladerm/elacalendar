@@ -27,7 +27,7 @@ import type { Product } from '@/lib/types';
 import { UploadCloud, File, AlertCircle, CheckCircle2, PackagePlus, Loader2, Layers } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { collection, writeBatch, doc, getDocs, Timestamp, addDoc, query, where, limit } from 'firebase/firestore';
+import { collection, writeBatch, doc, getDocs, Timestamp, addDoc, query, where, limit, getDoc } from 'firebase/firestore';
 import { cn, removeUndefined } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
@@ -184,11 +184,8 @@ export function InventoryImportDialog({ isOpen, onOpenChange, branch, onImportSu
         const existingProducts = inventorySnap.docs.map(d => ({ id: d.id, ...d.data() } as Product));
         
         const settingsRef = doc(db, 'inventory_config', 'settings');
-        const settingsSnapRaw = await getDocs(query(collection(db, 'inventory_config'), limit(1)));
-        let lastCodeNumber = 0;
-        if (!settingsSnapRaw.empty) {
-            lastCodeNumber = settingsSnapRaw.docs.find(d => d.id === 'settings')?.data()?.lastCodeNumber || 0;
-        }
+        const settingsSnap = await getDoc(settingsRef);
+        let lastCodeNumber = settingsSnap.exists() ? (settingsSnap.data().lastCodeNumber || 0) : 0;
 
         const CHUNK_SIZE = 100;
         const chunks = [];
