@@ -306,34 +306,54 @@ export default function InventarioPage() {
     setIsExporting(true);
     try {
       const snapshot = await getDocs(collection(db, 'inventory'));
-      const allData = snapshot.docs.map(docSnap => {
+      
+      // Consolidamos por identidad de producto + sede para el reporte
+      const map = new Map<string, any>();
+      snapshot.docs.forEach(docSnap => {
         const p = docSnap.data() as Product;
-        return {
-          code: p.code || '---',
-          name: p.name,
-          brand: p.brand || 'GENÉRICO',
-          category: p.category,
-          branch: p.branch,
-          location: p.location,
-          sealed: p.sealedCount,
-          inUse: p.inUseCount,
-          finished: p.finishedCount || 0,
-          unit: p.unit,
-          package: p.packageSize || '---',
-          price: p.unitPrice || 0,
-          min: p.minStock || 1,
-          provider: p.commercialName || '---',
-          phone: p.distributorPhone || '---',
-          obs: p.observations || ''
-        };
+        const key = `${p.branch}-` + ((p.code && p.code.trim()) 
+          ? p.code.trim().toUpperCase() 
+          : `${(p.name || '').trim().toUpperCase()}-${(p.brand || '').trim().toUpperCase()}-${(p.unit || '').trim().toUpperCase()}-${(p.packageSize || '').trim().toUpperCase()}`);
+        
+        let item = map.get(key);
+        if (!item) {
+          item = {
+            code: p.code || '---',
+            name: p.name,
+            brand: p.brand || 'GENÉRICO',
+            category: p.category,
+            branch: p.branch,
+            sealedBodega: 0,
+            sealedCabina: 0,
+            inUse: 0,
+            finished: 0,
+            unit: p.unit,
+            package: p.packageSize || '---',
+            price: p.unitPrice || 0,
+            min: p.minStock || 1,
+            provider: p.commercialName || '---',
+            phone: p.distributorPhone || '---',
+            obs: p.observations || ''
+          };
+          map.set(key, item);
+        }
+        
+        if (p.location === 'BODEGA') {
+          item.sealedBodega += p.sealedCount;
+        } else if (p.location === 'ESTABLECIMIENTO') {
+          item.sealedCabina += p.sealedCount;
+          item.inUse += p.inUseCount;
+          item.finished += (p.finishedCount || 0);
+        }
       });
+
+      const allData = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
 
       const settingsSnap = await getDoc(doc(db, 'inventory_config', 'settings'));
       const settingsData = settingsSnap.exists() ? settingsSnap.data() : {};
       const categories = (settingsData.categories || []).sort();
       const units = (settingsData.units || []).sort();
       const branches = ['Matriz', 'Valle'];
-      const locations = ['BODEGA', 'ESTABLECIMIENTO'];
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('INVENTARIO_ELAPIEL');
@@ -341,7 +361,6 @@ export default function InventarioPage() {
       const refSheet = workbook.addWorksheet('RefData');
       categories.forEach((cat: string, i: number) => refSheet.getCell(`A${i + 1}`).value = cat);
       branches.forEach((b: string, i: number) => refSheet.getCell(`B${i + 1}`).value = b);
-      locations.forEach((l: string, i: number) => refSheet.getCell(`C${i + 1}`).value = l);
       units.forEach((u: string, i: number) => refSheet.getCell(`D${i + 1}`).value = u);
       refSheet.state = 'hidden';
 
@@ -351,9 +370,9 @@ export default function InventarioPage() {
         { header: 'MARCA', key: 'brand', width: 20 },
         { header: 'CATEGORIA', key: 'category', width: 25 },
         { header: 'SEDE', key: 'branch', width: 15 },
-        { header: 'UBICACION', key: 'location', width: 20 },
-        { header: 'STOCK_SELLADO', key: 'sealed', width: 15 },
-        { header: 'EN_USO', key: 'inUse', width: 10 },
+        { header: 'BODEGA SELLADO', key: 'sealedBodega', width: 18 },
+        { header: 'CABINA SELLADO', key: 'sealedCabina', width: 18 },
+        { header: 'EN USO', key: 'inUse', width: 10 },
         { header: 'TERMINADOS', key: 'finished', width: 12 },
         { header: 'UNIDAD', key: 'unit', width: 12 },
         { header: 'PRESENTACION', key: 'package', width: 15 },
@@ -367,7 +386,7 @@ export default function InventarioPage() {
       worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
       worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDB2777' } };
 
-      allData.forEach((item, idx) => {
+      allData.forEach((item) => {
         const row = worksheet.addRow(item);
         if (categories.length > 0) {
           row.getCell('category').dataValidation = {
@@ -381,11 +400,6 @@ export default function InventarioPage() {
           allowBlank: true,
           formulae: [`RefData!$B$1:$B$${branches.length}`]
         };
-        row.getCell('location').dataValidation = {
-          type: 'list',
-          allowBlank: true,
-          formulae: [`RefData!$C$1:$C$${locations.length}`]
-        };
         if (units.length > 0) {
           row.getCell('unit').dataValidation = {
             type: 'list',
@@ -396,8 +410,8 @@ export default function InventarioPage() {
       });
 
       const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer]), `Inventario_Completo_ElaPiel_${new Date().toISOString().split('T')[0]}.xlsx`);
-      toast({ title: "Exportación Exitosa", description: `${allData.length} registros exportados.` });
+      saveAs(new Blob([buffer]), `Inventario_Consolidado_ElaPiel_${new Date().toISOString().split('T')[0]}.xlsx`);
+      toast({ title: "Exportación Exitosa", description: `${allData.length} productos consolidados exportados.` });
     } catch (e) {
       console.error("Error exportando:", e);
       toast({ title: "Error al exportar", variant: "destructive" });
@@ -648,7 +662,7 @@ export default function InventarioPage() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleExportAllInventory} disabled={isExporting}>
                       {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                      Exportar Inventario (XLSX)
+                      Exportar Consolidado (XLSX)
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsImportOpen(true)}>
                       <FileSpreadsheet className="mr-2 h-4 w-4" /> Importar Masivamente (Excel)

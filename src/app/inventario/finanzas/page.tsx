@@ -7,7 +7,7 @@ import { SiteHeader } from '@/components/site-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy, limit, getDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, getDoc, doc, getDocs } from 'firebase/firestore';
 import { 
   WalletMinimal, 
   PieChart as PieChartIcon, 
@@ -245,22 +245,49 @@ export default function FinanzasPage() {
 
   const handleExportFinancialReport = async () => {
     try {
-      const allData = products.map(p => ({
-        code: p.code || '---',
-        name: p.name,
-        brand: p.brand || '---',
-        category: p.category,
-        branch: p.branch,
-        location: p.location,
-        sealed: p.sealedCount,
-        unit: p.unit,
-        inUse: p.inUseCount,
-        package: p.packageSize || '---',
-        finished: p.finishedCount || 0,
-        price: p.unitPrice || 0,
-        valActivo: (p.sealedCount + p.inUseCount) * (p.unitPrice || 0),
-        valConsumido: (p.finishedCount || 0) * (p.unitPrice || 0),
-        provider: p.commercialName || '---'
+      const snapshot = await getDocs(collection(db, 'inventory'));
+      
+      // Consolidamos para el reporte financiero con las columnas solicitadas
+      const map = new Map<string, any>();
+      snapshot.docs.forEach(docSnap => {
+        const p = docSnap.data() as Product;
+        const key = `${p.branch}-` + ((p.code && p.code.trim()) 
+          ? p.code.trim().toUpperCase() 
+          : `${(p.name || '').trim().toUpperCase()}-${(p.brand || '').trim().toUpperCase()}-${(p.unit || '').trim().toUpperCase()}-${(p.packageSize || '').trim().toUpperCase()}`);
+        
+        let item = map.get(key);
+        if (!item) {
+          item = {
+            code: p.code || '---',
+            name: p.name,
+            brand: p.brand || '---',
+            category: p.category,
+            branch: p.branch,
+            sealedBodega: 0,
+            sealedCabina: 0,
+            inUse: 0,
+            finished: 0,
+            unit: p.unit,
+            package: p.packageSize || '---',
+            price: p.unitPrice || 0,
+            provider: p.commercialName || '---'
+          };
+          map.set(key, item);
+        }
+        
+        if (p.location === 'BODEGA') {
+          item.sealedBodega += p.sealedCount;
+        } else if (p.location === 'ESTABLECIMIENTO') {
+          item.sealedCabina += p.sealedCount;
+          item.inUse += p.inUseCount;
+          item.finished += (p.finishedCount || 0);
+        }
+      });
+
+      const allData = Array.from(map.values()).map(item => ({
+        ...item,
+        valActivo: (item.sealedBodega + item.sealedCabina + item.inUse) * item.price,
+        valConsumido: item.finished * item.price
       }));
 
       const settingsSnap = await getDoc(doc(db, 'inventory_config', 'settings'));
@@ -268,7 +295,6 @@ export default function FinanzasPage() {
       const categories = (settingsData.categories || []).sort();
       const units = (settingsData.units || []).sort();
       const branches = ['Matriz', 'Valle'];
-      const locations = ['BODEGA', 'ESTABLECIMIENTO'];
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Reporte_Financiero');
@@ -276,7 +302,6 @@ export default function FinanzasPage() {
       const refSheet = workbook.addWorksheet('RefData');
       categories.forEach((cat: string, i: number) => refSheet.getCell(`A${i + 1}`).value = cat);
       branches.forEach((b: string, i: number) => refSheet.getCell(`B${i + 1}`).value = b);
-      locations.forEach((l: string, i: number) => refSheet.getCell(`C${i + 1}`).value = l);
       units.forEach((u: string, i: number) => refSheet.getCell(`D${i + 1}`).value = u);
       refSheet.state = 'hidden';
 
@@ -286,12 +311,12 @@ export default function FinanzasPage() {
         { header: 'MARCA', key: 'brand', width: 20 },
         { header: 'CATEGORIA', key: 'category', width: 25 },
         { header: 'SEDE', key: 'branch', width: 15 },
-        { header: 'UBICACION', key: 'location', width: 20 },
-        { header: 'STOCK_SELLADO', key: 'sealed', width: 15 },
-        { header: 'UNIDAD', key: 'unit', width: 12 },
-        { header: 'EN_USO', key: 'inUse', width: 10 },
-        { header: 'PRESENTACION', key: 'package', width: 15 },
+        { header: 'BODEGA SELLADO', key: 'sealedBodega', width: 18 },
+        { header: 'CABINA SELLADO', key: 'sealedCabina', width: 18 },
+        { header: 'EN USO', key: 'inUse', width: 10 },
         { header: 'TERMINADOS', key: 'finished', width: 12 },
+        { header: 'UNIDAD', key: 'unit', width: 12 },
+        { header: 'PRESENTACION', key: 'package', width: 15 },
         { header: 'P_UNITARIO', key: 'price', width: 15 },
         { header: 'VALOR_ACTIVO', key: 'valActivo', width: 18 },
         { header: 'VALOR_CONSUMIDO', key: 'valConsumido', width: 18 },
@@ -301,10 +326,8 @@ export default function FinanzasPage() {
       worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
       worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
 
-      allData.forEach((item, idx) => {
+      allData.forEach((item) => {
         const row = worksheet.addRow(item);
-        
-        // Desplegable de Categoría
         if (categories.length > 0) {
           row.getCell('category').dataValidation = {
             type: 'list',
@@ -312,22 +335,11 @@ export default function FinanzasPage() {
             formulae: [`RefData!$A$1:$A$${categories.length}`]
           };
         }
-
-        // Desplegable de Sedes
         row.getCell('branch').dataValidation = {
           type: 'list',
           allowBlank: true,
           formulae: [`RefData!$B$1:$B$${branches.length}`]
         };
-
-        // Desplegable de Ubicación
-        row.getCell('location').dataValidation = {
-          type: 'list',
-          allowBlank: true,
-          formulae: [`RefData!$C$1:$C$${locations.length}`]
-        };
-
-        // Desplegable de Unidades
         if (units.length > 0) {
           row.getCell('unit').dataValidation = {
             type: 'list',
