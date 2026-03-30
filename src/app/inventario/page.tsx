@@ -305,15 +305,15 @@ export default function InventarioPage() {
     if (!isAdminUser || isExporting) return;
     setIsExporting(true);
     try {
-      const snapshot = await getDocs(collection(db, 'inventory'));
+      // Filtrar solo por la sucursal seleccionada para la exportación
+      const snapshot = await getDocs(query(collection(db, 'inventory'), where('branch', '==', selectedBranch)));
       
-      // Consolidamos por identidad de producto + sede para el reporte
       const map = new Map<string, any>();
       snapshot.docs.forEach(docSnap => {
         const p = docSnap.data() as Product;
-        const key = `${p.branch}-` + ((p.code && p.code.trim()) 
+        const key = (p.code && p.code.trim()) 
           ? p.code.trim().toUpperCase() 
-          : `${(p.name || '').trim().toUpperCase()}-${(p.brand || '').trim().toUpperCase()}-${(p.unit || '').trim().toUpperCase()}-${(p.packageSize || '').trim().toUpperCase()}`);
+          : `${(p.name || '').trim().toUpperCase()}-${(p.brand || '').trim().toUpperCase()}-${(p.unit || '').trim().toUpperCase()}-${(p.packageSize || '').trim().toUpperCase()}`;
         
         let item = map.get(key);
         if (!item) {
@@ -356,7 +356,7 @@ export default function InventarioPage() {
       const branches = ['Matriz', 'Valle'];
 
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('INVENTARIO_ELAPIEL');
+      const worksheet = workbook.addWorksheet(`INVENTARIO_${selectedBranch.toUpperCase()}`);
       
       const refSheet = workbook.addWorksheet('RefData');
       categories.forEach((cat: string, i: number) => refSheet.getCell(`A${i + 1}`).value = cat);
@@ -410,8 +410,8 @@ export default function InventarioPage() {
       });
 
       const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer]), `Inventario_Consolidado_ElaPiel_${new Date().toISOString().split('T')[0]}.xlsx`);
-      toast({ title: "Exportación Exitosa", description: `${allData.length} productos consolidados exportados.` });
+      saveAs(new Blob([buffer]), `Inventario_${selectedBranch}_ElaPiel_${new Date().toISOString().split('T')[0]}.xlsx`);
+      toast({ title: "Exportación Exitosa", description: `${allData.length} productos de ${selectedBranch} exportados.` });
     } catch (e) {
       console.error("Error exportando:", e);
       toast({ title: "Error al exportar", variant: "destructive" });
@@ -662,7 +662,7 @@ export default function InventarioPage() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleExportAllInventory} disabled={isExporting}>
                       {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                      Exportar Consolidado (XLSX)
+                      Exportar {selectedBranch} (XLSX)
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsImportOpen(true)}>
                       <FileSpreadsheet className="mr-2 h-4 w-4" /> Importar Masivamente (Excel)

@@ -7,7 +7,7 @@ import { SiteHeader } from '@/components/site-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy, limit, getDoc, doc, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, getDoc, doc, getDocs, where } from 'firebase/firestore';
 import { 
   WalletMinimal, 
   PieChart as PieChartIcon, 
@@ -126,6 +126,13 @@ export default function FinanzasPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBranch, setSelectedBranch] = useState<'Matriz' | 'Valle'>('Matriz');
+
+  useEffect(() => {
+    if (user?.branch) {
+      setSelectedBranch(user.branch);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && user?.role !== 'administrador' && !user?.permissions?.finanzas?.ver) {
@@ -245,15 +252,15 @@ export default function FinanzasPage() {
 
   const handleExportFinancialReport = async () => {
     try {
-      const snapshot = await getDocs(collection(db, 'inventory'));
+      // Filtrar solo por la sucursal seleccionada para el reporte financiero
+      const snapshot = await getDocs(query(collection(db, 'inventory'), where('branch', '==', selectedBranch)));
       
-      // Consolidamos para el reporte financiero con las columnas solicitadas
       const map = new Map<string, any>();
       snapshot.docs.forEach(docSnap => {
         const p = docSnap.data() as Product;
-        const key = `${p.branch}-` + ((p.code && p.code.trim()) 
+        const key = (p.code && p.code.trim()) 
           ? p.code.trim().toUpperCase() 
-          : `${(p.name || '').trim().toUpperCase()}-${(p.brand || '').trim().toUpperCase()}-${(p.unit || '').trim().toUpperCase()}-${(p.packageSize || '').trim().toUpperCase()}`);
+          : `${(p.name || '').trim().toUpperCase()}-${(p.brand || '').trim().toUpperCase()}-${(p.unit || '').trim().toUpperCase()}-${(p.packageSize || '').trim().toUpperCase()}`;
         
         let item = map.get(key);
         if (!item) {
@@ -297,7 +304,7 @@ export default function FinanzasPage() {
       const branches = ['Matriz', 'Valle'];
 
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Reporte_Financiero');
+      const worksheet = workbook.addWorksheet(`Reporte_Financiero_${selectedBranch.toUpperCase()}`);
       
       const refSheet = workbook.addWorksheet('RefData');
       categories.forEach((cat: string, i: number) => refSheet.getCell(`A${i + 1}`).value = cat);
@@ -350,7 +357,7 @@ export default function FinanzasPage() {
       });
 
       const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer]), `Auditoria_Financiera_ElaPiel_${new Date().toISOString().split('T')[0]}.xlsx`);
+      saveAs(new Blob([buffer]), `Auditoria_Financiera_${selectedBranch}_ElaPiel_${new Date().toISOString().split('T')[0]}.xlsx`);
       
     } catch (e) {
       console.error(e);
@@ -378,9 +385,15 @@ export default function FinanzasPage() {
               <p className="text-muted-foreground font-medium italic">Análisis financiero y velocidad de rotación de activos.</p>
             </div>
           </div>
-          <Button onClick={handleExportFinancialReport} className="bg-primary hover:bg-primary/90 font-black uppercase text-xs h-11 px-6 shadow-lg shadow-primary/20">
-            <Download className="mr-2 h-4 w-4" /> Exportar Auditoría XLSX
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 p-1 bg-muted rounded-lg shadow-sm">
+              <Button variant={selectedBranch === "Matriz" ? "default" : "ghost"} onClick={() => setSelectedBranch("Matriz")} className={cn("px-3 h-9", selectedBranch === "Matriz" && "bg-pink-600")}>Matriz</Button>
+              <Button variant={selectedBranch === "Valle" ? "default" : "ghost"} onClick={() => setSelectedBranch("Valle")} className={cn("px-3 h-9", selectedBranch === "Valle" && "bg-primary")}>Valle</Button>
+            </div>
+            <Button onClick={handleExportFinancialReport} className="bg-primary hover:bg-primary/90 font-black uppercase text-xs h-11 px-6 shadow-lg shadow-primary/20">
+              <Download className="mr-2 h-4 w-4" /> Exportar Auditoría {selectedBranch} (XLSX)
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
