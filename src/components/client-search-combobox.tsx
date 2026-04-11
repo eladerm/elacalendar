@@ -75,10 +75,12 @@ export function ClientSearchCombobox({ clients, value, onChange }: ClientSearchC
                     />
                     -- Crear Nuevo Cliente --
                 </CommandItem>
-              {search.length > 0 && clients.map((client) => (
+              {clients.map((client) => {
+                const searchString = `${client.name || ''} ${client.lastName || ''} ${client.idNumber || ''}`.trim();
+                return (
                 <CommandItem
                   key={client.id}
-                  value={`${client.name} ${client.lastName} ${client.idNumber || ''}`}
+                  value={searchString}
                   onSelect={() => {
                     onChange(client.id)
                     setOpen(false)
@@ -90,9 +92,9 @@ export function ClientSearchCombobox({ clients, value, onChange }: ClientSearchC
                       value === client.id ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  {client.name} {client.lastName}
+                  {client.name} {client.lastName || ''} {client.idNumber ? `- ${client.idNumber}` : ''}
                 </CommandItem>
-              ))}
+              )})}
             </CommandGroup>
           </CommandList>
         </Command>

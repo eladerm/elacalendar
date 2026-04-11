@@ -140,10 +140,8 @@ export default function LoginPage() {
       <div className="container relative z-10 mx-auto px-4 h-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
           
-          <div className="hidden lg:flex flex-col space-y-2 text-white animate-in fade-in slide-in-from-left-8 duration-700">
-            <h1 className="text-8xl font-black tracking-tighter flex items-baseline">
-              ÉLAPIEL<span className="text-[#eb2f96]">.</span>
-            </h1>
+          <div className="hidden lg:flex flex-col space-y-4 text-white animate-in fade-in slide-in-from-left-8 duration-700 items-start justify-center drop-shadow-2xl">
+            <img src="/logo-transparent.png" alt="ÉLAPIEL" className="w-[450px] max-w-full drop-shadow-[0_10px_25px_rgba(0,0,0,0.5)]" />
           </div>
 
           <div className="flex justify-center lg:justify-end animate-in fade-in slide-in-from-right-8 duration-700">

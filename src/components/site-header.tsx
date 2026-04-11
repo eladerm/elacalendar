@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { Plus, LogOut, User as UserIcon, Calendar, Users, Briefcase, FileText, BarChart2, Package } from 'lucide-react';
+import { Plus, LogOut, User as UserIcon, Calendar, Users, Briefcase, FileText, BarChart2, Package, MessageCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +26,8 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 const navLinks = [
   { href: "/", icon: Calendar, label: "Calendario", key: 'calendario' },
+  { href: "/facturacion", icon: FileText, label: "Facturación", key: 'facturacion' },
+  { href: "/crm", icon: MessageCircle, label: "CRM", key: 'crm' },
   { href: "/clientes", icon: Users, label: "Clientes", key: 'clientes' },
   { href: "/inventario", icon: Package, label: "Inventario", key: 'inventario' },
   { href: "/servicios", icon: Briefcase, label: "Servicios", key: 'servicios' },
@@ -100,29 +102,12 @@ export function SiteHeader({ onAddNewClick, secondaryAction }: SiteHeaderProps) 
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-md shadow-sm">
       <div className="flex h-16 items-center justify-between px-2 sm:px-6">
         <div className="flex gap-2 md:gap-8 items-center">
-          <Link href="/" className="flex items-center space-x-2 mr-2">
-            <div className="bg-primary p-1.5 rounded-lg shadow-md shadow-primary/20">
-                <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5 text-primary-foreground"
-                >
-                <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                <line x1="16" x2="16" y1="2" y2="6" />
-                <line x1="8" x2="8" y1="2" y2="6" />
-                <line x1="3" x2="21" y1="10" y2="10" />
-                </svg>
-            </div>
-            <span className="hidden sm:inline-block font-black text-xl tracking-tight text-foreground uppercase italic">ÉLAPIEL</span>
+          <Link href="/" className="flex items-center mr-2">
+            <img src="/logo-transparent.png" alt="ÉLAPIEL" className="h-10 sm:h-12 w-auto object-contain drop-shadow-md" />
           </Link>
           
           <TooltipProvider>
-            <nav className="flex items-center gap-1 sm:gap-2">
+            <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full max-w-[65vw] md:max-w-[70vw] lg:max-w-none">
               {visibleLinks.map(({ href, icon: Icon, label }) => (
                 <Tooltip key={href}>
                   <TooltipTrigger asChild>
@@ -130,7 +115,7 @@ export function SiteHeader({ onAddNewClick, secondaryAction }: SiteHeaderProps) 
                       asChild
                       variant="ghost"
                       className={cn(
-                        "flex items-center gap-2 border transition-all",
+                        "flex items-center gap-2 border transition-all shrink-0",
                         isMobile 
                           ? "w-10 h-10 p-0 bg-background shadow-sm border-border/60" 
                           : "px-3 border-transparent hover:border-primary/20 hover:bg-primary/5 text-muted-foreground hover:text-primary"
@@ -138,7 +123,7 @@ export function SiteHeader({ onAddNewClick, secondaryAction }: SiteHeaderProps) 
                     >
                       <Link href={href}>
                         <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                        <span className="hidden lg:inline font-bold uppercase text-[11px] tracking-wider">{label}</span>
+                        <span className="hidden xl:inline font-bold uppercase text-[11px] tracking-wider">{label}</span>
                       </Link>
                     </Button>
                   </TooltipTrigger>

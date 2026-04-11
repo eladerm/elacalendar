@@ -10,14 +10,27 @@ runConfig:
   # memoryMiB: 512
 
 # Environment variables and secrets.
-# env:
-  # Configure environment variables.
-  # See https://firebase.google.com/docs/app-hosting/configure#user-defined-environment
-  # - variable: MESSAGE
-  #   value: Hello world!
-  #   availability:
-  #     - BUILD
-  #     - RUNTIME
+env:
+  - variable: GEMINI_API_KEY
+    value: AIzaSyCmRaDp8JfyEe1euRN0vBHAGxrn06FyadY
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: WHATSAPP_TOKEN
+    value: EAAcP3oDStusBRKktUPML1VgLZAwJGUb30sqRZBP8GSZCxAmHpfY8kReAneBNGRFttTZCVjbdOlmRCOQaPGERdKwwfotdhodiiUFsnYghRaTCGh6ZB7Bnyrmd8WZC89IO4oZAZCQvZBdIZBxCJEEpCClQiCj3WOwckZAw82bqvjrzYhBCdKzby4MygvCJyZAPA5fRN7Qs5wZDZD
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: WHATSAPP_PHONE_NUMBER_ID
+    value: "1107599569093001"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: WHATSAPP_WEBHOOK_VERIFY_TOKEN
+    value: elapiel_webhook_secret_12345
+    availability:
+      - BUILD
+      - RUNTIME
 
   # Grant access to secrets in Cloud Secret Manager.
   # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters

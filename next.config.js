@@ -8,6 +8,13 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['firebase-admin', 'open-factura', 'nodemailer', 'jspdf', 'bwip-js'],
+    cpus: 1,
+    workerThreads: false,
+    memoryBasedWorkersCount: true,
+  },
 };
 
 module.exports = nextConfig;
+

@@ -32,7 +32,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ShieldCheck, User as UserIcon, Lock, MapPin, LayoutGrid, CheckCircle2, Calendar, Users, Package, Briefcase, FileText, BarChart2, WalletMinimal, Camera } from 'lucide-react';
+import { ShieldCheck, User as UserIcon, Lock, MapPin, LayoutGrid, CheckCircle2, Calendar, Users, Package, Briefcase, FileText, BarChart2, WalletMinimal, Camera, MessageCircle } from 'lucide-react';
 import type { User, UserPermissions } from '@/lib/types';
 
 const userSchema = z.object({
@@ -73,6 +73,8 @@ const defaultPermissions: UserPermissions = {
   bitacora: { ver: false, foto_login: true },
   reportes: { ver: false },
   finanzas: { ver: false, exportar: false },
+  crm: { ver: false, chat: false, embudos: false, campanas: false, contactos: false, reportes: false, configuracion: false },
+  facturacion: { ver: false, crear: false, editar: false, eliminar: false },
 };
 
 const adminPermissions: UserPermissions = {
@@ -84,6 +86,8 @@ const adminPermissions: UserPermissions = {
   bitacora: { ver: true, foto_login: true },
   reportes: { ver: true },
   finanzas: { ver: true, exportar: true },
+  crm: { ver: true, chat: true, embudos: true, campanas: true, contactos: true, reportes: true, configuracion: true },
+  facturacion: { ver: true, crear: true, editar: true, eliminar: true },
 };
 
 const permissionSections = [
@@ -180,6 +184,30 @@ const permissionSections = [
       { id: 'ver', label: 'Ver Reportes Operativos' },
     ]
   },
+  { 
+    id: 'crm', 
+    label: 'CRM & WhatsApp', 
+    icon: MessageCircle,
+    options: [
+      { id: 'ver', label: 'Ver Dashboard CRM' },
+      { id: 'chat', label: 'Gestionar Chats' },
+      { id: 'embudos', label: 'Gestionar Embudos' },
+      { id: 'campanas', label: 'Crear Campañas' },
+      { id: 'contactos', label: 'Ver Contactos CRM' },
+      { id: 'configuracion', label: 'Configurar API Meta' },
+    ]
+  },
+  { 
+    id: 'facturacion', 
+    label: 'Facturación Electrónica', 
+    icon: FileText,
+    options: [
+      { id: 'ver', label: 'Ver Facturas' },
+      { id: 'crear', label: 'Emitir Facturas' },
+      { id: 'editar', label: 'Editar Facturas' },
+      { id: 'eliminar', label: 'Anular Facturas' },
+    ]
+  },
 ];
 
 export function UserFormDialog({
@@ -230,7 +258,14 @@ export function UserFormDialog({
     if (role === 'administrador') {
       form.setValue('permissions', adminPermissions);
     } else if (role === 'administrador_sucursal') {
-      form.setValue('permissions', { ...defaultPermissions, bitacora: { ver: true, foto_login: true }, reportes: { ver: true }, finanzas: { ver: true } });
+      form.setValue('permissions', { 
+        ...defaultPermissions, 
+        bitacora: { ver: true, foto_login: true }, 
+        reportes: { ver: true }, 
+        finanzas: { ver: true, exportar: false },
+        crm: { ver: true, chat: true, embudos: true, campanas: false, contactos: true, reportes: true, configuracion: false },
+        facturacion: { ver: true, crear: true, editar: false, eliminar: false }
+      });
     } else {
       form.setValue('permissions', defaultPermissions);
     }
@@ -269,7 +304,7 @@ export function UserFormDialog({
 
   const filteredSections = permissionSections.filter(section => {
     if (currentRole === 'operaria') {
-      return !['usuarios', 'bitacora', 'reportes', 'finanzas'].includes(section.id);
+      return !['usuarios', 'bitacora', 'reportes', 'finanzas', 'crm', 'facturacion'].includes(section.id);
     }
     return true;
   });

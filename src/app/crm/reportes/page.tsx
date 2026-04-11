@@ -1,0 +1,181 @@
+"use client";
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  BarChart3,
+  MessageCircle,
+  Users,
+  Clock,
+  TrendingUp,
+  TrendingDown,
+  CheckCheck,
+  Download,
+  Calendar,
+  Send
+} from 'lucide-react';
+import { cn } from "@/lib/utils";
+
+const periodOptions = ['Hoy', 'Esta semana', 'Este mes', 'Últimos 3 meses'];
+
+// Datos de ejemplo para la visualización
+const hourlyData = [
+  { hour: '08h', msgs: 12 }, { hour: '09h', msgs: 34 }, { hour: '10h', msgs: 56 },
+  { hour: '11h', msgs: 78 }, { hour: '12h', msgs: 45 }, { hour: '13h', msgs: 23 },
+  { hour: '14h', msgs: 67 }, { hour: '15h', msgs: 89 }, { hour: '16h', msgs: 72 },
+  { hour: '17h', msgs: 54 }, { hour: '18h', msgs: 38 }, { hour: '19h', msgs: 21 },
+];
+const maxMsg = Math.max(...hourlyData.map(d => d.msgs));
+
+const agentData = [
+  { name: 'Carolina M.', msgs: 142, avgTime: '3.2m', rate: '95%', color: 'bg-emerald-500' },
+  { name: 'Pablo R.', msgs: 98, avgTime: '5.1m', rate: '88%', color: 'bg-blue-500' },
+  { name: 'Sofía L.', msgs: 87, avgTime: '4.4m', rate: '91%', color: 'bg-violet-500' },
+  { name: 'Diego H.', msgs: 65, avgTime: '6.8m', rate: '82%', color: 'bg-amber-500' },
+];
+
+const KpiCard = ({ title, value, change, positive, icon: Icon }: any) => (
+  <Card className="bg-[#1e293b]/40 border-slate-700/50 rounded-2xl overflow-hidden group hover:border-emerald-500/30 transition-all">
+    <CardContent className="p-6">
+      <div className="flex justify-between items-start mb-4">
+        <div className="p-2 bg-slate-800/80 rounded-xl group-hover:bg-emerald-500/20 transition-colors">
+          <Icon className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 transition-colors" />
+        </div>
+        <div className={cn("flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full border",
+          positive ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" : "text-red-400 bg-red-500/10 border-red-500/20"
+        )}>
+          {positive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+          {change}
+        </div>
+      </div>
+      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{title}</p>
+      <p className="text-2xl font-black text-white">{value}</p>
+    </CardContent>
+  </Card>
+);
+
+export default function CRMReportesPage() {
+  const [period, setPeriod] = useState('Esta semana');
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-white italic uppercase flex items-center gap-3">
+            <BarChart3 className="w-8 h-8 text-emerald-500" />
+            Reportes de CRM
+          </h1>
+          <p className="text-slate-400 font-bold mt-1 text-sm uppercase tracking-wider">
+            Analítica de mensajería y rendimiento del equipo
+          </p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <div className="flex bg-slate-800/50 p-1 rounded-xl border border-slate-700/50">
+            {periodOptions.map(p => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={cn(
+                  "px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all",
+                  period === p ? "bg-emerald-500 text-white shadow-sm" : "text-slate-500 hover:text-white"
+                )}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+          <Button variant="outline" className="border-slate-700 text-slate-400 hover:text-white gap-2 font-black text-xs uppercase rounded-xl h-10">
+            <Download className="w-3.5 h-3.5" /> Exportar
+          </Button>
+        </div>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard title="Mensajes Recibidos" value="1,284" change="+12.5%" positive icon={MessageCircle} />
+        <KpiCard title="Mensajes Enviados" value="943" change="+8.3%" positive icon={Send} />
+        <KpiCard title="Tasa de Respuesta" value="94.2%" change="+2.1%" positive icon={CheckCheck} />
+        <KpiCard title="Tiempo Promedio" value="4.2m" change="+0.8m" positive={false} icon={Clock} />
+      </div>
+
+      {/* Gráfico de Actividad por Hora */}
+      <Card className="bg-[#1e293b]/40 border-slate-700/50 rounded-2xl overflow-hidden">
+        <CardHeader className="p-6 border-b border-slate-700/50">
+          <CardTitle className="text-white font-black italic uppercase text-lg flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-emerald-500" /> Actividad por Hora del Día
+          </CardTitle>
+          <CardDescription className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
+            Distribución de mensajes para: {period}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-8">
+          <div className="flex items-end gap-2 h-48">
+            {hourlyData.map((d, i) => (
+              <div key={i} className="flex flex-col items-center gap-2 flex-1 group">
+                <span className="text-[10px] font-black text-slate-600 group-hover:text-emerald-400 transition-colors">{d.msgs}</span>
+                <div
+                  className="w-full bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t-lg transition-all shadow-lg shadow-emerald-500/20 group-hover:from-emerald-500 group-hover:to-emerald-300"
+                  style={{ height: `${(d.msgs / maxMsg) * 100}%`, minHeight: '4px' }}
+                />
+                <span className="text-[9px] font-black text-slate-600 uppercase group-hover:text-slate-400 transition-colors">{d.hour}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Rendimiento por Agente */}
+      <Card className="bg-[#1e293b]/40 border-slate-700/50 rounded-2xl overflow-hidden">
+        <CardHeader className="p-6 border-b border-slate-700/50">
+          <CardTitle className="text-white font-black italic uppercase text-lg flex items-center gap-2">
+            <Users className="w-5 h-5 text-emerald-500" /> Rendimiento por Agente
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <table className="w-full">
+            <thead>
+              <tr className="text-[9px] font-black uppercase tracking-widest text-slate-600 border-b border-slate-700/50">
+                <th className="text-left px-6 py-3">Agente</th>
+                <th className="text-right px-6 py-3">Mensajes</th>
+                <th className="text-right px-6 py-3">Tiempo Promedio</th>
+                <th className="text-right px-6 py-3">Satisfacción</th>
+                <th className="px-6 py-3">Distribución</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700/20">
+              {agentData.map((a, i) => (
+                <tr key={i} className="hover:bg-slate-800/30 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-xs italic", a.color)}>
+                        {a.name[0]}
+                      </div>
+                      <span className="text-sm font-black text-white group-hover:text-emerald-400 transition-colors">{a.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right font-black text-white text-sm">{a.msgs}</td>
+                  <td className="px-6 py-4 text-right font-black text-slate-400 text-sm">{a.avgTime}</td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="text-sm font-black text-emerald-400">{a.rate}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div
+                        className={cn("h-full rounded-full", a.color)}
+                        style={{ width: `${(a.msgs / agentData[0].msgs) * 100}%` }}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+
+    </div>
+  );
+}

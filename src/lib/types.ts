@@ -165,6 +165,69 @@ export type UserPermissions = {
     ver: boolean;
     exportar: boolean;
   };
+  crm: {
+    ver: boolean;
+    chat: boolean;
+    embudos: boolean;
+    campanas: boolean;
+    contactos: boolean;
+    reportes: boolean;
+    configuracion: boolean;
+  };
+  facturacion: {
+    ver: boolean;
+    crear: boolean;
+    editar: boolean;
+    eliminar: boolean;
+  };
+};
+
+export type ChatMessage = {
+  id: string;
+  chatId: string;
+  from: string;
+  to: string;
+  body: string;
+  type: 'text' | 'image' | 'video' | 'document' | 'audio' | 'location' | 'template';
+  status: 'sent' | 'delivered' | 'read' | 'failed';
+  timestamp: Date;
+  mediaUrl?: string;
+  caption?: string;
+  isIncoming: boolean;
+  waId?: string; // WhatsApp Message ID
+};
+
+export type ChatThread = {
+  id: string;
+  waId: string; // WhatsApp ID (phone number)
+  name: string;
+  countryCode?: string; // e.g. "EC", "MX"
+  lastMessage?: string;
+  lastTimestamp?: Date;
+  status: 'open' | 'pending' | 'closed';
+  unreadCount: number;
+  assignedTo?: string; // User ID
+  photoUrl?: string;
+  funnelStage?: 'leads' | 'contacted' | 'quoted' | 'closed';
+};
+
+export type CRMContact = {
+  id: string;
+  waId: string;
+  name: string;
+  tags: string[];
+  notes?: string;
+  funnelId?: string;
+  stageId?: string;
+  lastInteraction?: Date;
+  email?: string;
+};
+
+export type CRMStage = {
+  id: string;
+  name: string;
+  color: string;
+  order: number;
 };
 
 export type User = {
@@ -190,6 +253,70 @@ export type ActivityLog = {
     eventId?: string;
     clientId?: string;
     productId?: string;
-    deliveryId?: string;
     loginPhoto?: string;
 }
+
+// CRM Chatbot Typings
+export type FlowNodeData = {
+    label: string;
+    text?: string;
+    mediaUrl?: string;
+    options?: string[];
+    [key: string]: any;
+};
+
+export type ChatbotConfig = {
+    id: string;
+    name: string;
+    description?: string;
+    active: boolean;
+    aiFallback: boolean; // Enable ChatGPT/Genkit integration
+    triggerKeywords: string[];
+    assignedWaId?: string; // WhatsApp line to use
+    nodes?: any[]; // React Flow nodes
+    edges?: any[]; // React Flow edges
+    createdAt?: Date;
+    updatedAt?: Date;
+};
+
+// IA Assistant Training Typings
+export type TrainingSource = {
+    id: string;
+    type: 'file' | 'text' | 'url';
+    content: string; // URL, pure text, or gs:// path
+    size?: number; // File size in bytes
+    name?: string; // Filename or website title
+    status: 'syncing' | 'ready' | 'error';
+    updatedAt: Date;
+};
+
+export type AIAssistantConfig = {
+    id: string;
+    name: string;
+    active: boolean;
+    model: 'gpt-4o' | 'gpt-4o-mini' | 'gemini-1.5-pro' | 'gemini-1.5-flash';
+    systemPrompt: string;
+    temperature: number;
+    maxTokens?: number;
+    assignedWaId?: string; // Specific WhatsApp line
+    sources: TrainingSource[];
+    createdAt?: Date;
+    updatedAt?: Date;
+};
+
+// WhatsApp Channel Typings (Meta Cloud API)
+export type WhatsAppChannelType = 'migrated' | 'new_cloud';
+
+export type WhatsAppChannel = {
+    id: string; // The physical phone number id
+    name: string; // Business name linked to line
+    phoneNumber: string;
+    type: WhatsAppChannelType;
+    healthScore: 'GREEN' | 'YELLOW' | 'RED';
+    qualityRating: string;
+    messagingLimit: string; // "250", "1K", "10K", "UNLIMITED"
+    status: 'CONNECTED' | 'DISCONNECTED' | 'PENDING';
+    verified: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
+};
