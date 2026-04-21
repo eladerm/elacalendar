@@ -20,23 +20,23 @@ import { db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
 const StatsCard = ({ title, value, icon: Icon, change, isPositive }: any) => (
-  <Card className="bg-[#1e293b]/40 border-slate-700/50 hover:bg-[#1e293b]/60 transition-colors relative overflow-hidden group">
+  <Card className="bg-card border-border hover:bg-accent hover:text-accent-foreground transition-colors relative overflow-hidden group">
     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
       <Icon className="w-24 h-24" />
     </div>
     <CardHeader className="pb-2">
       <CardTitle className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-        <Icon className="w-4 h-4 text-emerald-500" />
+        <Icon className="w-4 h-4 text-primary" />
         {title}
       </CardTitle>
     </CardHeader>
     <CardContent>
       <div className="flex items-baseline gap-2">
-        <span className="text-4xl font-black text-white">{value}</span>
+        <span className="text-4xl font-black text-foreground">{value}</span>
         {change && (
           <span className={cn(
             "text-xs font-bold px-2 py-0.5 rounded-full",
-            isPositive ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
+            isPositive ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive-foreground"
           )}>
             {change}
           </span>
@@ -90,20 +90,20 @@ export default function CRMDashboard() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-8">
       
       {/* HEADER DE BIENVENIDA */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-emerald-900/40 to-slate-900/40 p-8 rounded-3xl border border-emerald-500/20 px-8 relative overflow-hidden">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-primary/10 to-background p-8 rounded-3xl border border-primary/20 px-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-5">
            <LayoutDashboard className="w-48 h-48" />
         </div>
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
-            <span className="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-500/30 flex items-center gap-2">
-               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Sistema en Línea
+            <span className="bg-primary/20 text-primary px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border border-primary/30 flex items-center gap-2">
+               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" /> Sistema en Línea
             </span>
             <span className="text-slate-400 text-xs font-bold uppercase tracking-widest flex items-center gap-1">
                <CalendarDays className="w-3 h-3" /> {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
             </span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-black text-foreground italic uppercase tracking-tight">
              Dashboard Principal
           </h1>
           <p className="text-slate-400 mt-2 text-sm font-bold uppercase tracking-widest max-w-xl leading-relaxed">
@@ -111,7 +111,7 @@ export default function CRMDashboard() {
           </p>
         </div>
         <div className="flex gap-3 relative z-10">
-          <Button onClick={()=>router.push('/crm/contactos')} className="bg-emerald-500 hover:bg-emerald-600 text-white font-black shadow-lg shadow-emerald-500/20 px-6 rounded-xl h-12 uppercase tracking-wider text-xs">
+          <Button onClick={()=>router.push('/crm/contactos')} className="bg-primary hover:opacity-90 text-primary-foreground font-black shadow-lg shadow-primary/20 px-6 rounded-xl h-12 uppercase tracking-wider text-xs">
             Nuevo Lead <ArrowUpRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
@@ -151,26 +151,26 @@ export default function CRMDashboard() {
 
       {/* QUICK ACTIONS ROW */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="bg-gradient-to-br from-[#1e293b]/80 to-slate-900/80 border-slate-700/50 relative overflow-hidden group cursor-pointer" onClick={()=>router.push('/crm/chat')}>
+          <Card className="bg-card border-border hover:bg-accent hover:text-accent-foreground relative overflow-hidden group cursor-pointer" onClick={()=>router.push('/crm/chat')}>
               <CardContent className="p-8">
-                 <MessageCircle className="w-12 h-12 text-emerald-500 mb-4 group-hover:scale-110 transition-transform" />
-                 <h3 className="text-xl font-black text-white uppercase italic mb-2">Bandeja de Chat</h3>
+                 <MessageCircle className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
+                 <h3 className="text-xl font-black text-foreground uppercase italic mb-2">Bandeja de Chat</h3>
                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Responde a conversaciones pendientes asistidas por IA.</p>
               </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-[#1e293b]/80 to-slate-900/80 border-slate-700/50 relative overflow-hidden group cursor-pointer" onClick={()=>router.push('/crm/campanas')}>
+          <Card className="bg-card border-border hover:bg-accent hover:text-accent-foreground relative overflow-hidden group cursor-pointer" onClick={()=>router.push('/crm/campanas')}>
               <CardContent className="p-8">
-                 <Megaphone className="w-12 h-12 text-emerald-500 mb-4 group-hover:scale-110 transition-transform" />
-                 <h3 className="text-xl font-black text-white uppercase italic mb-2">Lanzar Campaña</h3>
+                 <Megaphone className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
+                 <h3 className="text-xl font-black text-foreground uppercase italic mb-2">Lanzar Campaña</h3>
                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Difusión masiva autorizada por plantillas de Meta.</p>
               </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-[#1e293b]/80 to-slate-900/80 border-slate-700/50 relative overflow-hidden group cursor-pointer" onClick={()=>router.push('/crm/contactos')}>
+          <Card className="bg-card border-border hover:bg-accent hover:text-accent-foreground relative overflow-hidden group cursor-pointer" onClick={()=>router.push('/crm/contactos')}>
               <CardContent className="p-8">
-                 <Users className="w-12 h-12 text-emerald-500 mb-4 group-hover:scale-110 transition-transform" />
-                 <h3 className="text-xl font-black text-white uppercase italic mb-2">Agenda Global</h3>
+                 <Users className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
+                 <h3 className="text-xl font-black text-foreground uppercase italic mb-2">Agenda Global</h3>
                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Añade y etiqueta leads directos a tu embudo.</p>
               </CardContent>
           </Card>

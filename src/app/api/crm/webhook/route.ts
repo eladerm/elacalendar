@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+// runChatbotFlow se importa dinámicamente dentro de handleIncomingMessage (fire-and-forget)
 
 const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
 
@@ -69,12 +70,14 @@ async function handleIncomingMessage(message: any, contact: any) {
   const waId = contact.wa_id;
   const name = contact.profile.name;
   const messageType = message.type;
+  const referral = message.referral || null;
   
   // Buscar o crear hilo de chat
   const chatRef = adminDb.collection('crm_chats');
   const querySnapshot = await chatRef.where('waId', '==', waId).get();
   
   let chatId: string;
+  let botPaused = false;
   
   if (querySnapshot.empty) {
     // Si no existe el chat, lo creamos
@@ -85,9 +88,12 @@ async function handleIncomingMessage(message: any, contact: any) {
       lastTimestamp: FieldValue.serverTimestamp(),
       status: 'open',
       unreadCount: 1,
-      createdAt: FieldValue.serverTimestamp()
+      botPaused: false,
+      createdAt: FieldValue.serverTimestamp(),
+      ...(referral && { source: 'facebook_ads', adReferral: referral })
     });
     chatId = newChat.id;
+    botPaused = false;
     
     // También creamos el contacto en el CRM si no existe
     const contactRef = adminDb.collection('crm_contacts');
@@ -97,20 +103,47 @@ async function handleIncomingMessage(message: any, contact: any) {
       await contactRef.add({
         waId,
         name,
-        tags: [],
+        tags: referral ? ['lead-ads'] : [],
         lastInteraction: FieldValue.serverTimestamp(),
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: FieldValue.serverTimestamp(),
+        ...(referral && { source: 'facebook_ads', adReferral: referral })
       });
     }
   } else {
     // Si existe, actualizamos el último mensaje y contador
     chatId = querySnapshot.docs[0].id;
+    const existingData = querySnapshot.docs[0].data();
+    
+    // Si viene de un anuncio, forzamos a despachar el bot (anular pausa humana antigua)
+    botPaused = referral ? false : (existingData.botPaused === true);
+    
     const chatDoc = chatRef.doc(chatId);
     await chatDoc.update({
       lastMessage: getMessagePreview(message),
       lastTimestamp: FieldValue.serverTimestamp(),
-      unreadCount: querySnapshot.docs[0].data().unreadCount + 1
+      unreadCount: (existingData.unreadCount || 0) + 1,
+      ...(referral && { source: 'facebook_ads', adReferral: referral, botPaused: false })
     });
+
+    // Actualizar el contacto si viene de un nuevo anuncio
+    if (referral) {
+      const contactRef = adminDb.collection('crm_contacts');
+      const cSnap = await contactRef.where('waId', '==', waId).get();
+      if (!cSnap.empty) {
+         await contactRef.doc(cSnap.docs[0].id).update({
+            source: 'facebook_ads',
+            adReferral: referral,
+            tags: FieldValue.arrayUnion('lead-ads')
+         });
+      }
+    }
+  }
+
+  // Verificar si el mensaje ya existe (idempotencia para evitar respuestas dobles si Meta reintenta)
+  const existingMsg = await adminDb.collection('crm_messages').where('waId', '==', message.id).get();
+  if (!existingMsg.empty) {
+    console.log(`[Webhook] Mensaje duplicado detectado (waId: ${message.id}). Ignorando.`);
+    return;
   }
 
   // Guardar el mensaje individual
@@ -126,6 +159,27 @@ async function handleIncomingMessage(message: any, contact: any) {
     timestamp: FieldValue.serverTimestamp(),
     mediaMetadata: messageType !== 'text' ? message[messageType] : null
   });
+
+  // ═══════════════════════════════════════════════════════════
+  // 🤖 MOTOR HÍBRIDO (Mercately Style + Genkit): Activar si no está pausado
+  // ═══════════════════════════════════════════════════════════
+  if (!botPaused && (message.text?.body || referral)) {
+    console.log(`🧠 [Webhook] Bot activo para chat [${chatId}] — activando Motor Híbrido...`);
+    try {
+      const { processFlowbotMessage } = await import('@/ai/engine/flowbot-engine');
+      await processFlowbotMessage({
+        phone: chatId,
+        text: message.text?.body || '',
+        channel: 'whatsapp',
+        referral: referral
+      });
+      console.log(`✅ [Webhook] Ciclo de Motor completado para chat [${chatId}]`);
+    } catch (err) {
+      console.error('❌ [Webhook] Error en Motor Híbrido:', err);
+    }
+  } else if (botPaused) {
+    console.log(`⏸️ [Webhook] Bot PAUSADO para [${chatId}] — agente humano activo.`);
+  }
 }
 
 /**

@@ -30,8 +30,8 @@ const templates = [
 ];
 
 const categoryColor: Record<string, string> = {
-  UTILITY: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  MARKETING: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  UTILITY: 'bg-blue-500/10 text-blue-500 font-black border-blue-500/20',
+  MARKETING: 'bg-amber-500/10 text-amber-500 font-black border-amber-500/20',
 };
 
 export default function CRMNuevoChatPage() {
@@ -88,11 +88,11 @@ export default function CRMNuevoChatPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-black text-white italic uppercase flex items-center gap-3">
-          <PlusCircle className="w-8 h-8 text-emerald-500" />
+        <h1 className="text-3xl font-black text-foreground italic uppercase flex items-center gap-3">
+          <PlusCircle className="w-8 h-8 text-primary" />
           Iniciar Conversación
         </h1>
-        <p className="text-slate-400 font-bold mt-1 text-sm uppercase tracking-wider">
+        <p className="text-muted-foreground font-bold mt-1 text-sm uppercase tracking-wider">
           Envía el primer mensaje a un contacto de WhatsApp
         </p>
       </div>
@@ -108,51 +108,51 @@ export default function CRMNuevoChatPage() {
             <div className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all",
               step >= s.n
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                : "bg-slate-800/30 border-slate-700/50 text-slate-600"
+                ? "bg-primary/10 border-primary/30 text-primary"
+                : "bg-muted border-border text-muted-foreground"
             )}>
               <div className={cn(
                 "w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px]",
-                step > s.n ? "bg-emerald-500 text-white" : step === s.n ? "border-2 border-emerald-500 text-emerald-400" : "border border-slate-700 text-slate-600"
+                step > s.n ? "bg-primary text-primary-foreground" : step === s.n ? "border-2 border-primary text-primary" : "border border-muted-foreground text-muted-foreground"
               )}>
                 {step > s.n ? <CheckCircle2 className="w-3 h-3" /> : s.n}
               </div>
               {s.label}
             </div>
-            {i < arr.length - 1 && <ChevronRight className="w-4 h-4 text-slate-700 shrink-0" />}
+            {i < arr.length - 1 && <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />}
           </React.Fragment>
         ))}
       </div>
 
       {/* Paso 1: Destinatario */}
       {step === 1 && (
-        <Card className="bg-[#1e293b]/40 border-slate-700/50 rounded-2xl">
-          <CardHeader className="p-6 border-b border-slate-700/50">
-            <CardTitle className="text-white font-black italic uppercase flex items-center gap-2">
-              <Phone className="w-5 h-5 text-emerald-500" /> ¿A quién le escribes?
+        <Card className="bg-card border-border rounded-xl shadow-sm">
+          <CardHeader className="p-6 border-b border-border">
+            <CardTitle className="text-foreground font-black italic uppercase flex items-center gap-2">
+              <Phone className="w-5 h-5 text-primary" /> ¿A quién le escribes?
             </CardTitle>
-            <CardDescription className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">
+            <CardDescription className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">
               Busca un contacto existente o ingresa un número nuevo
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Teléfono (con código de país)</Label>
+              <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Teléfono (con código de país)</Label>
               <div className="flex gap-2">
-                <div className="flex items-center px-4 bg-slate-800/50 border border-slate-700/50 rounded-xl text-slate-400 font-black text-sm">
+                <div className="flex items-center px-4 bg-muted/50 border border-border rounded-xl text-muted-foreground font-black text-sm">
                   +593
                 </div>
                 <Input
                   value={phone}
                   onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
                   placeholder="9 8765 4321"
-                  className="flex-1 bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-700 focus-visible:ring-emerald-500 rounded-xl font-bold font-mono h-12"
+                  className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary rounded-xl font-bold font-mono h-12"
                 />
               </div>
-              <div className="flex items-center gap-2 mt-2 p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl">
-                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                <p className="text-[10px] font-bold text-amber-400/80 leading-relaxed">
-                  Para iniciar una conversación fría (sin respuesta previa en 24h), <strong>debes usar una plantilla aprobada</strong>.
+              <div className="flex items-center gap-2 mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                <p className="text-[10px] font-bold text-amber-700 leading-relaxed">
+                   Para iniciar una conversación fría (sin respuesta previa en 24h), <strong className="font-black text-amber-800">debes usar una plantilla aprobada</strong>.
                 </p>
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function CRMNuevoChatPage() {
             <Button
               onClick={() => { if (phone.length >= 9) setStep(2); }}
               disabled={phone.length < 9}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase rounded-xl h-12 shadow-lg shadow-emerald-500/20 disabled:opacity-40"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase rounded-xl h-12 shadow-sm shadow-primary/20 disabled:opacity-40"
             >
               Continuar <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
@@ -170,10 +170,10 @@ export default function CRMNuevoChatPage() {
 
       {/* Paso 2: Tipo de mensaje */}
       {step === 2 && (
-        <Card className="bg-[#1e293b]/40 border-slate-700/50 rounded-2xl">
-          <CardHeader className="p-6 border-b border-slate-700/50">
-            <CardTitle className="text-white font-black italic uppercase flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-emerald-500" /> Tipo de Mensaje
+        <Card className="bg-card border-border rounded-xl shadow-sm">
+          <CardHeader className="p-6 border-b border-border">
+            <CardTitle className="text-foreground font-black italic uppercase flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-primary" /> Tipo de Mensaje
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
@@ -182,49 +182,49 @@ export default function CRMNuevoChatPage() {
               <button
                 onClick={() => setMsgType('template')}
                 className={cn(
-                  "p-4 rounded-2xl border-2 text-left transition-all",
-                  msgType === 'template' ? "border-emerald-500 bg-emerald-500/10" : "border-slate-700/50 bg-slate-800/20 hover:border-slate-600"
+                  "p-4 rounded-xl border-2 text-left transition-all",
+                  msgType === 'template' ? "border-primary bg-primary/10" : "border-border bg-background hover:border-primary/50"
                 )}
               >
-                <FileText className="w-5 h-5 text-emerald-400 mb-2" />
-                <p className="text-sm font-black text-white">Plantilla Aprobada</p>
-                <p className="text-[10px] font-bold text-slate-500 mt-1">Recomendado para contactos nuevos</p>
+                <FileText className="w-5 h-5 text-primary mb-2" />
+                <p className="text-sm font-black text-foreground">Plantilla Aprobada</p>
+                <p className="text-[10px] font-bold text-muted-foreground mt-1">Recomendado para contactos nuevos</p>
               </button>
               <button
                 onClick={() => setMsgType('text')}
                 className={cn(
-                  "p-4 rounded-2xl border-2 text-left transition-all",
-                  msgType === 'text' ? "border-emerald-500 bg-emerald-500/10" : "border-slate-700/50 bg-slate-800/20 hover:border-slate-600"
+                  "p-4 rounded-xl border-2 text-left transition-all",
+                  msgType === 'text' ? "border-primary bg-primary/10" : "border-border bg-background hover:border-primary/50"
                 )}
               >
-                <MessageCircle className="w-5 h-5 text-emerald-400 mb-2" />
-                <p className="text-sm font-black text-white">Texto Libre</p>
-                <p className="text-[10px] font-bold text-slate-500 mt-1">Solo si el cliente escribió primero (&lt;24h)</p>
+                <MessageCircle className="w-5 h-5 text-primary mb-2" />
+                <p className="text-sm font-black text-foreground">Texto Libre</p>
+                <p className="text-[10px] font-bold text-muted-foreground mt-1">Solo si el cliente escribió primero (&lt;24h)</p>
               </button>
             </div>
 
             {/* Plantillas */}
             {msgType === 'template' && (
               <div className="space-y-3">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selecciona una plantilla</Label>
+                <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Selecciona una plantilla</Label>
                 {templates.map(t => (
                   <div
                     key={t.id}
                     onClick={() => setSelectedTemplate(t.name)}
                     className={cn(
-                      "p-4 rounded-xl border cursor-pointer transition-all",
+                      "p-4 rounded-xl border cursor-pointer transition-all bg-card shadow-sm",
                       selectedTemplate === t.name
-                        ? "border-emerald-500/60 bg-emerald-500/10"
-                        : "border-slate-700/50 bg-slate-800/20 hover:border-slate-600"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
                     )}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-black text-white">{t.name}</span>
-                      <span className={cn("text-[9px] font-black uppercase px-2 py-0.5 rounded border", categoryColor[t.category])}>
+                      <span className="text-sm font-black text-foreground">{t.name}</span>
+                      <span className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full border", categoryColor[t.category])}>
                         {t.category}
                       </span>
                     </div>
-                    <p className="text-[11px] font-bold text-slate-500 leading-relaxed italic">{t.preview}</p>
+                    <p className="text-[11px] font-bold text-muted-foreground leading-relaxed italic">{t.preview}</p>
                   </div>
                 ))}
               </div>
@@ -233,26 +233,26 @@ export default function CRMNuevoChatPage() {
             {/* Texto Libre */}
             {msgType === 'text' && (
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Escribe tu mensaje</Label>
+                <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Escribe tu mensaje</Label>
                 <Textarea
                   value={freeText}
                   onChange={e => setFreeText(e.target.value)}
                   placeholder="Hola, ¿en qué te podemos ayudar hoy?"
                   rows={5}
-                  className="bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-700 focus-visible:ring-emerald-500 rounded-xl font-bold resize-none"
+                  className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary rounded-xl font-bold resize-none"
                 />
-                <p className="text-right text-[10px] font-black text-slate-600">{freeText.length}/4096</p>
+                <p className="text-right text-[10px] font-black text-muted-foreground/70">{freeText.length}/4096</p>
               </div>
             )}
 
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setStep(1)} className="flex-1 border-slate-700 text-slate-400 font-black text-xs uppercase rounded-xl h-12">
+              <Button variant="outline" onClick={() => setStep(1)} className="flex-1 border-border text-muted-foreground/80 hover:text-foreground hover:bg-muted font-black text-xs uppercase rounded-xl h-12">
                 Atrás
               </Button>
               <Button
                 onClick={handleSend}
                 disabled={isSending}
-                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase rounded-xl h-12 shadow-lg shadow-emerald-500/20"
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase rounded-xl h-12 shadow-sm shadow-primary/20"
               >
                 {isSending ? 'Enviando...' : <><Send className="w-4 h-4 mr-2" /> Enviar Mensaje</>}
               </Button>
@@ -263,23 +263,23 @@ export default function CRMNuevoChatPage() {
 
       {/* Paso 3: Éxito */}
       {step === 3 && (
-        <Card className="bg-[#1e293b]/40 border-emerald-500/30 rounded-2xl">
+        <Card className="bg-card border-primary/30 rounded-xl shadow-lg">
           <CardContent className="p-12 flex flex-col items-center text-center gap-6">
-            <div className="w-20 h-20 bg-emerald-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/30 rotate-3">
-              <CheckCircle2 className="w-10 h-10 text-white" />
+            <div className="w-20 h-20 bg-primary/20 text-primary rounded-2xl flex items-center justify-center rotate-3 border border-primary/20">
+              <CheckCircle2 className="w-10 h-10" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-white italic uppercase">¡Mensaje Enviado!</h2>
-              <p className="text-slate-400 font-bold text-sm mt-2">
-                Tu conversación con <span className="text-emerald-400">+593 {phone}</span> está activa.
+              <h2 className="text-2xl font-black text-foreground italic uppercase">¡Mensaje Enviado!</h2>
+              <p className="text-muted-foreground font-bold text-sm mt-2">
+                Tu conversación con <span className="text-primary font-black">+593 {phone}</span> está activa.
               </p>
             </div>
             <div className="flex gap-3 w-full">
               <Button onClick={() => { setStep(1); setPhone(''); setFreeText(''); setSelectedTemplate(null); }}
-                variant="outline" className="flex-1 border-slate-700 text-slate-400 font-black text-xs uppercase rounded-xl h-12">
+                variant="outline" className="flex-1 border-border text-muted-foreground font-black text-xs uppercase rounded-xl h-12 hover:bg-muted hover:text-foreground">
                 Nuevo Mensaje
               </Button>
-              <Button asChild className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase rounded-xl h-12">
+              <Button asChild className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase rounded-xl h-12 shadow-sm shadow-primary/20">
                 <a href="/crm/chat">Ir al Chat</a>
               </Button>
             </div>

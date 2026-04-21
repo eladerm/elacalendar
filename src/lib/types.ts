@@ -199,7 +199,7 @@ export type ChatMessage = {
 
 export type ChatThread = {
   id: string;
-  waId: string; // WhatsApp ID (phone number)
+  waId: string; // WhatsApp ID (phone number) or other channel ID
   name: string;
   countryCode?: string; // e.g. "EC", "MX"
   lastMessage?: string;
@@ -209,6 +209,7 @@ export type ChatThread = {
   assignedTo?: string; // User ID
   photoUrl?: string;
   funnelStage?: 'leads' | 'contacted' | 'quoted' | 'closed';
+  channel?: 'whatsapp' | 'instagram' | 'facebook';
 };
 
 export type CRMContact = {
@@ -300,6 +301,12 @@ export type AIAssistantConfig = {
     maxTokens?: number;
     assignedWaId?: string; // Specific WhatsApp line
     sources: TrainingSource[];
+    // Kommo-style training fields
+    tone?: 'amistoso' | 'profesional' | 'casual' | 'persuasivo' | 'empatico';
+    responseLength?: 'corta' | 'media' | 'larga';
+    language?: 'es' | 'en' | 'pt';
+    responseDelay?: number; // seconds to wait before responding
+    guidelines?: string[]; // individual rule strings (Pautas)
     createdAt?: Date;
     updatedAt?: Date;
 };

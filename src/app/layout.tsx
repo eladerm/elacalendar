@@ -1,16 +1,17 @@
 import type { Metadata, Viewport } from 'next';
-import { PT_Sans } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/components/auth-provider';
 import { cn } from '@/lib/utils';
 import { AppointmentNotifier } from '@/components/appointment-notifier';
 import { SessionTimeout } from '@/components/session-timeout';
+import { ThemeProvider } from '@/components/theme-provider';
 
-const ptSans = PT_Sans({
+const poppins = Poppins({
   subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-pt-sans',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins',
 });
 
 const APP_NAME = "ÉLAPIEL";
@@ -24,9 +25,9 @@ export const metadata: Metadata = {
   description: APP_DESCRIPTION,
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    icon: '/favicon.ico?v=2',
+    shortcut: '/favicon.ico?v=2',
+    apple: '/apple-touch-icon.png?v=2',
   },
   appleWebApp: {
     capable: true,
@@ -54,15 +55,17 @@ export default function RootLayout({
       <body
         className={cn(
           'min-h-screen bg-background font-sans antialiased',
-          ptSans.variable
+          poppins.variable
         )}
       >
-        <AuthProvider>
-          <SessionTimeout />
-          {children}
-          <AppointmentNotifier />
-        </AuthProvider>
-        <Toaster />
+        <ThemeProvider>
+          <AuthProvider>
+            <SessionTimeout />
+            {children}
+            <AppointmentNotifier />
+          </AuthProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

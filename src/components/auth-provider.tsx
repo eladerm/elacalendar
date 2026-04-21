@@ -26,11 +26,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const sessionUser = sessionStorage.getItem('user');
-    if (sessionUser) {
-      setUser(JSON.parse(sessionUser));
+    try {
+      const sessionUser = sessionStorage.getItem('user');
+      if (sessionUser) {
+        setUser(JSON.parse(sessionUser));
+      } else if (process.env.NODE_ENV === 'development') {
+        const devUser = {
+          id: 'dev-user',
+          name: 'Developer',
+          role: 'admin',
+          username: 'dev',
+          employeeId: '0000',
+          email: 'dev@elapiel.com',
+          status: 'active'
+        };
+        setUser(devUser as unknown as User);
+        sessionStorage.setItem('user', JSON.stringify(devUser));
+      }
+    } catch (e) {
+      console.error('Failed to parse session user', e);
+      sessionStorage.removeItem('user');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
   
   useEffect(() => {

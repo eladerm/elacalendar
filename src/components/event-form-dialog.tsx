@@ -324,6 +324,38 @@ export function EventFormDialog({
 
       });
 
+      // 🚀 Enviar a AnythingLLM
+      try {
+          let computedClientName = "";
+          if (data.clientId === 'new') {
+            const name = data.newClientName?.toUpperCase() || "";
+            const lastName = (data.newClientLastName || '').toUpperCase();
+            computedClientName = `${name} ${lastName}`.trim();
+          } else {
+            const client = clients.find(c => c.id === data.clientId);
+            computedClientName = client ? `${client.name} ${client.lastName}` : "Desconocido";
+          }
+
+          const [startHours, startMinutes] = data.startTime.split(':').map(Number);
+          const computedStartDate = setHours(setMinutes(data.selectedDate, startMinutes), startHours);
+          const serviceNames = selectedServices.map(s => s.name).join(', ') || "Ninguno específico";
+          
+          const documentContent = `Nueva cita agendada.\nPaciente: ${computedClientName}\nTratamientos/Servicios: ${serviceNames}\nNotas Técnicas/Observaciones: ${data.description || "Sin observaciones."}\nFecha y hora: ${format(computedStartDate, "dd/MM/yyyy HH:mm")}`;
+          
+          fetch('/api/anythingllm', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  action: 'add_document',
+                  title: `Cita: ${computedClientName} - ${format(computedStartDate, "dd/MM")}`,
+                  content: documentContent
+              })
+          }).catch(e => console.error("AnythingLLM Fetch Error:", e));
+          
+      } catch(e) {
+          console.error("Error updating AnythingLLM with appointment: ", e);
+      }
+
       toast({ title: "Cita creada correctamente" });
       onEventUpdate();
       onOpenChange(false);
