@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { ReactFlow, Controls, Background, applyNodeChanges, applyEdgeChanges, addEdge, Node, Edge, NodeChange, EdgeChange, Connection, BackgroundVariant, Panel, ReactFlowProvider, useReactFlow, useViewport, NodeToolbar as XYNodeToolbar, Position } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { ArrowLeft, PlayCircle, MessageSquare, Zap, Clock, GitBranch, LayoutList, Tag, UserPlus, Database, Image, CalendarClock, Maximize2, Minimize2, ZoomIn, ZoomOut, Trash2, LayoutTemplate, ListPlus, Plus, X, UserCheck } from 'lucide-react';
+import { ArrowLeft, PlayCircle, MessageSquare, Zap, Clock, GitBranch, LayoutList, Tag, UserPlus, Database, Image, CalendarClock, Maximize2, Minimize2, ZoomIn, ZoomOut, Trash2, LayoutTemplate, ListPlus, Plus, X, UserCheck, CheckCircle2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -418,6 +418,8 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [botConfig, setBotConfig] = useState<ChatbotConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
@@ -550,7 +552,8 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
     try {
       const docRef = doc(db, 'crm_chatbots', chatbotId);
       await updateDoc(docRef, { nodes, edges });
-      // Brief visual feedback
+      setIsDirty(false);
+      setLastSaved(new Date());
     } catch (e) {
       console.error('Error guardando:', e);
       alert('Error al guardar el flujo. Verifica tu conexión.');
@@ -558,6 +561,28 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
       setIsSaving(false);
     }
   }, [chatbotId, nodes, edges, isSaving]);
+
+  // Auto-save with 2s debounce after any change
+  const isFirstLoad = useRef(true);
+  useEffect(() => {
+    if (isFirstLoad.current) { isFirstLoad.current = false; return; }
+    setIsDirty(true);
+    const t = setTimeout(() => { handleSave(); }, 2000);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, edges]);
+
+  // Ctrl+S / Cmd+S manual save
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleSave]);
 
   const handleDelete = useCallback(async () => {
     if (confirm('¿Estás seguro de que deseas eliminar este flujo? Esta acción no se puede deshacer.')) {
@@ -1001,9 +1026,15 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
             <Button
               onClick={handleSave}
               disabled={isSaving}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 h-9 shadow-sm"
+              className={`font-semibold px-5 h-9 shadow-sm transition-all ${
+                isSaving ? 'bg-blue-400 text-white' :
+                isDirty  ? 'bg-orange-500 hover:bg-orange-600 text-white' :
+                'bg-emerald-500 hover:bg-emerald-600 text-white'
+              }`}
             >
-              {isSaving ? 'Guardando...' : 'Guardar'}
+              {isSaving ? <><Save className="w-3.5 h-3.5 mr-1.5 animate-spin" />Guardando...</> :
+               isDirty  ? <><Save className="w-3.5 h-3.5 mr-1.5" />Guardar</>          :
+               <><CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />Guardado</>}
             </Button>
 
             <button
@@ -1041,6 +1072,18 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-3 flex-1 min-w-0">
+          {/* Save status indicator */}
+          <div className="flex items-center gap-1.5 text-xs font-medium">
+            {isSaving && <span className="text-blue-500 flex items-center gap-1"><Save className="w-3 h-3 animate-spin" />Guardando...</span>}
+            {!isSaving && isDirty && <span className="text-orange-500 flex items-center gap-1">● Sin guardar</span>}
+            {!isSaving && !isDirty && lastSaved && (
+              <span className="text-emerald-500 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                Guardado {lastSaved.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+            <span className="text-slate-300 text-[10px] ml-1 hidden sm:block">Ctrl+S</span>
+          </div>
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
@@ -1065,8 +1108,18 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
             <Button variant="ghost" onClick={() => router.push('/crm/chatbots')} className="text-slate-500 hover:text-slate-800 text-sm font-medium px-4 h-9">
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={isSaving} className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 rounded-lg h-9 shadow-sm">
-              {isSaving ? 'Guardando...' : 'Guardar'}
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`font-medium px-6 rounded-lg h-9 shadow-sm transition-all ${
+                isSaving ? 'bg-blue-400 text-white' :
+                isDirty  ? 'bg-orange-500 hover:bg-orange-600 text-white' :
+                'bg-emerald-500 hover:bg-emerald-600 text-white'
+              }`}
+            >
+              {isSaving ? <><Save className="w-3.5 h-3.5 mr-1.5 animate-spin" />Guardando...</> :
+               isDirty  ? <><Save className="w-3.5 h-3.5 mr-1.5" />Guardar</>          :
+               <><CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />Guardado</>}
             </Button>
           </div>
         </div>
