@@ -1,11 +1,11 @@
 {
-    "name": "ElaCalendar",
-    "short_name": "ElaCalendar",
-    "description": "Aplicación de calendario para gestionar citas y clientes.",
+    "name": "Élapiel CRM Workspace",
+    "short_name": "ÉlapielCRM",
+    "description": "Sistema de gestión integral Élapiel: CRM, Calendario, Inventario, Finanzas y más.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#ffffff",
+    "theme_color": "#eb2f96",
     "icons": [
         {
             "src": "/icons/icon-192x192.png",

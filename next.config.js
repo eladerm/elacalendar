@@ -9,12 +9,27 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ['firebase-admin', 'open-factura', 'nodemailer', 'jspdf', 'bwip-js'],
+    serverComponentsExternalPackages: [
+      'firebase-admin',
+      'open-factura',
+      'nodemailer',
+      'jspdf',
+      'bwip-js',
+      'genkit',
+      '@genkit-ai/core',
+      '@genkit-ai/googleai',
+      '@genkit-ai/next',
+      '@opentelemetry/sdk-node',
+      '@opentelemetry/instrumentation',
+      'require-in-the-middle',
+    ],
     cpus: 1,
     workerThreads: false,
-    memoryBasedWorkersCount: true,
+    memoryBasedWorkersCount: false,
   },
 };
 
 module.exports = nextConfig;
+
+
 

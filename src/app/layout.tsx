@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Poppins } from 'next/font/google';
+import { Outfit } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/components/auth-provider';
@@ -8,10 +8,9 @@ import { AppointmentNotifier } from '@/components/appointment-notifier';
 import { SessionTimeout } from '@/components/session-timeout';
 import { ThemeProvider } from '@/components/theme-provider';
 
-const poppins = Poppins({
+const outfit = Outfit({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-poppins',
+  variable: '--font-outfit',
 });
 
 const APP_NAME = "ÉLAPIEL";
@@ -55,7 +54,7 @@ export default function RootLayout({
       <body
         className={cn(
           'min-h-screen bg-background font-sans antialiased',
-          poppins.variable
+          outfit.variable
         )}
       >
         <ThemeProvider>

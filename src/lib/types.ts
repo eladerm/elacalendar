@@ -231,6 +231,17 @@ export type CRMStage = {
   order: number;
 };
 
+export type UserDocument = {
+  id: string;
+  userId: string;
+  category: 'certificate' | 'invoice' | 'other';
+  title: string;
+  url: string; // Base64 or true URL
+  fileType: string;
+  size?: number;
+  uploadedAt: Date;
+};
+
 export type User = {
   id: string;
   name: string;
@@ -243,6 +254,17 @@ export type User = {
   photoUrl?: string;
   status?: 'active' | 'inactive';
   permissions?: UserPermissions;
+  resume?: {
+    address?: string;
+    phone?: string;
+    birthDate?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    hireDate?: string;
+    bloodType?: string;
+    allergies?: string;
+    observations?: string;
+  };
 };
 
 export type ActivityLog = {

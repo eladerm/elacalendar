@@ -22,7 +22,7 @@ import {
   isSameDay,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Upload, GripVertical, Search, Download, Plus, CalendarDays, X, Loader2, Smile, User as UserIcon, Wrench } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Upload, GripVertical, Search, Download, Plus, CalendarDays, X, Loader2, Smile, User as UserIcon, Settings, Check, Grid3X3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { db } from '@/lib/firebase';
@@ -78,10 +78,7 @@ interface PositionedEvent extends Event {
 const processOverlappingEvents = (eventsForDay: Event[]): PositionedEvent[] => {
     if (!eventsForDay || eventsForDay.length === 0) return [];
 
-    const activeEvents = eventsForDay.filter(e => e.status !== 'cancelled');
-    const cancelledEvents = eventsForDay.filter(e => e.status === 'cancelled');
-
-    const sortedEvents = [...activeEvents].sort((a, b) => a.startDate.getTime() - b.startDate.getTime() || b.endDate.getTime() - a.endDate.getTime());
+    const sortedEvents = [...eventsForDay].sort((a, b) => a.startDate.getTime() - b.startDate.getTime() || b.endDate.getTime() - a.endDate.getTime());
     
     let collisionGroups: Event[][] = [];
     sortedEvents.forEach(event => {
@@ -130,29 +127,12 @@ const processOverlappingEvents = (eventsForDay: Event[]): PositionedEvent[] => {
                 height,
                 left: ((event as any).column / numColumns) * 100,
                 width: (1 / numColumns) * 100,
-                zIndex: (event as any).column + 2,
+                zIndex: event.status === 'cancelled' ? 1 : ((event as any).column + 2),
             });
         });
     });
 
-    const positionedCancelledEvents: PositionedEvent[] = cancelledEvents.map(event => {
-        const startHour = getHours(event.startDate);
-        const startMinute = getMinutes(event.startDate);
-        const top = ((startHour - 6) * 60 + startMinute) * PIXELS_PER_MINUTE;
-        const durationInMinutes = Math.max(differenceInMinutes(event.endDate, event.startDate), 10);
-        const height = durationInMinutes * PIXELS_PER_MINUTE;
-
-        return {
-            ...event,
-            top,
-            height,
-            left: 0,
-            width: 100,
-            zIndex: 1,
-        };
-    });
-
-    return [...positionedEvents, ...positionedCancelledEvents];
+    return positionedEvents;
 };
 
 interface RescheduleInfo {
@@ -227,6 +207,8 @@ export function WeeklyCalendar({ branch, initialDate, onEventUpdate, onDateChang
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Event[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+  const [blinkingEventId, setBlinkingEventId] = useState<string | null>(null);
 
   const [now, setNow] = useState(new Date());
 
@@ -559,6 +541,9 @@ export function WeeklyCalendar({ branch, initialDate, onEventUpdate, onDateChang
   };
 
   const handleEventClick = (event: PositionedEvent) => {
+    if (blinkingEventId === event.id) {
+      setBlinkingEventId(null);
+    }
     setSelectedEvent(event);
     setIsDetailsOpen(true);
   }
@@ -568,6 +553,8 @@ export function WeeklyCalendar({ branch, initialDate, onEventUpdate, onDateChang
     onDateChange(event.startDate);
     setSearchQuery('');
     setSearchResults([]);
+    setIsSearchDropdownOpen(false);
+    setBlinkingEventId(event.id);
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -597,28 +584,31 @@ export function WeeklyCalendar({ branch, initialDate, onEventUpdate, onDateChang
     if (value) saveAs(new Blob([value], { type: 'text/calendar' }), `citas_${branch}.ics`);
   };
 
-  const SearchResultsList = () => {
-    if (isSearching) return <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto h-8 w-8 text-primary mb-2" /><p>Buscando...</p></div>;
-    if (searchResults.length === 0) return <div className="p-20 text-center text-muted-foreground"><Search className="h-12 w-12 mx-auto mb-2 opacity-20" /><p>No se encontraron resultados.</p></div>;
-
+  const SearchDropdown = () => {
+    if (!searchQuery || searchQuery.length < 2) return null;
     return (
-      <div className="overflow-y-auto max-h-[calc(100vh-300px)]">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow><TableHead>Fecha</TableHead><TableHead>Horario</TableHead><TableHead>Paciente</TableHead><TableHead>Sucursal</TableHead><TableHead>Estado</TableHead></TableRow>
-          </TableHeader>
-          <TableBody>
+      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border rounded-lg shadow-lg z-50 max-h-[400px] overflow-y-auto">
+        {isSearching ? (
+          <div className="p-4 text-center text-sm text-muted-foreground">Buscando...</div>
+        ) : searchResults.length === 0 ? (
+          <div className="p-4 text-center text-sm text-muted-foreground">No se encontraron resultados.</div>
+        ) : (
+          <div className="flex flex-col">
             {searchResults.map(event => (
-              <TableRow key={event.id} onClick={() => handleSearchResultClick(event)} className="cursor-pointer hover:bg-muted/30">
-                <TableCell className="font-medium">{format(event.startDate, "d MMM yyyy", { locale: es })}</TableCell>
-                <TableCell>{format(event.startDate, 'HH:mm')} - {format(event.endDate, 'HH:mm')}</TableCell>
-                <TableCell className="uppercase font-bold text-primary">{event.clientName}</TableCell>
-                <TableCell><Badge variant="outline" className="text-[10px]">{event.branch}</Badge></TableCell>
-                <TableCell><Badge variant={event.status === 'cancelled' ? 'destructive' : 'default'}>{event.status === 'cancelled' ? 'Cancelada' : 'Confirmada'}</Badge></TableCell>
-              </TableRow>
+              <div 
+                key={event.id} 
+                onClick={() => handleSearchResultClick(event)}
+                className="flex flex-col p-2 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer border-b last:border-0"
+              >
+                <div className="font-semibold text-sm text-blue-600 dark:text-blue-400">{event.clientName}</div>
+                <div className="text-xs text-slate-500 flex justify-between mt-0.5">
+                  <span>{format(event.startDate, "d MMM, HH:mm", { locale: es })}</span>
+                  <span className="bg-slate-100 dark:bg-slate-800 px-1.5 rounded">{event.branch}</span>
+                </div>
+              </div>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        )}
       </div>
     );
   };
@@ -628,112 +618,137 @@ export function WeeklyCalendar({ branch, initialDate, onEventUpdate, onDateChang
   return (
     <>
       <TooltipProvider>
-        <Card className="flex flex-col h-[calc(100vh-120px)]">
-           <header className="flex flex-col p-4 border-b gap-4">
-             <div className="flex flex-wrap items-center gap-2">
+        <Card className="flex flex-col h-[calc(100vh-120px)] border-0 shadow-none bg-white dark:bg-slate-950">
+           <header className="flex flex-col md:flex-row items-center justify-between p-3 border-b border-slate-200 dark:border-slate-800 gap-4 shrink-0">
+             <div className="flex items-center gap-4">
+                 <Button variant="outline" className="rounded-full px-5 font-medium border-slate-300 hover:bg-slate-50" onClick={() => setCurrentDate(new Date())}>Hoy</Button>
+                 <div className="flex items-center gap-1">
+                     <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-slate-600 hover:bg-slate-100" onClick={() => changeWeek(-1)}><ChevronLeft className="h-5 w-5" /></Button>
+                     <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-slate-600 hover:bg-slate-100" onClick={() => changeWeek(1)}><ChevronRight className="h-5 w-5" /></Button>
+                 </div>
                  <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                      <PopoverTrigger asChild>
-                        <Button variant="ghost" className="text-lg font-semibold capitalize hover:bg-accent flex items-center gap-2">
-                            <CalendarDays className="w-5 h-5 text-muted-foreground" />
-                            <h2 className="font-semibold text-lg capitalize">{format(currentDate, 'MMMM yyyy', { locale: es })}</h2>
+                        <Button variant="ghost" className="text-xl font-normal hover:bg-transparent hover:text-primary p-0 flex items-center gap-2 text-slate-800 dark:text-slate-100">
+                            {format(currentDate, 'MMMM \'de\' yyyy', { locale: es }).replace(/^\w/, (c) => c.toUpperCase())}
                         </Button>
                      </PopoverTrigger>
                      <PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={currentDate} onSelect={handleDateSelect} initialFocus locale={es} weekStartsOn={1} /></PopoverContent>
                  </Popover>
-                 <div className="flex items-center gap-2">
-                     <Button variant="outline" size="icon" onClick={() => changeWeek(-1)}><ChevronLeft className="h-4 w-4" /></Button>
-                     <Button variant="outline" onClick={() => setCurrentDate(new Date())}>Hoy</Button>
-                     <Button variant="outline" size="icon" onClick={() => changeWeek(1)}><ChevronRight className="h-4 w-4" /></Button>
-                 </div>
-                 <div className="flex-grow min-w-[200px]"><MonthSelector currentDate={currentDate} onDateSelect={setCurrentDate} /></div>
              </div>
-             <div className="flex items-center gap-4">
-                 <div className="relative flex-grow">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+
+             <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end">
+                 <div className="relative w-full max-w-[280px]">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                     <Input
                         type="search"
-                        placeholder="Buscar por nombre o cédula..."
-                        className="pl-8 w-full h-10 border-primary/30 focus:ring-primary font-medium"
+                        placeholder="Buscar paciente..."
+                        className="pl-9 h-9 bg-slate-100 border-transparent focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg text-sm transition-all"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => setIsSearchDropdownOpen(true)}
                     />
-                    {searchQuery.length > 0 && <Button variant="ghost" size="icon" className="absolute right-1 top-1 h-8 w-8" onClick={() => setSearchQuery('')}><X className="h-4 w-4" /></Button>}
+                    {searchQuery.length > 0 && <Button variant="ghost" size="icon" className="absolute right-1 top-1 h-7 w-7 text-slate-400 hover:text-slate-600" onClick={() => {setSearchQuery(''); setIsSearchDropdownOpen(false);}}><X className="h-4 w-4" /></Button>}
+                    {isSearchDropdownOpen && <SearchDropdown />}
                  </div>
+                 
+                 <div className="hidden md:flex items-center gap-1">
+                   <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="rounded-full text-slate-500 hover:bg-slate-100"><Settings className="w-5 h-5" /></Button></TooltipTrigger><TooltipContent>Ajustes</TooltipContent></Tooltip>
+                 </div>
+
                  {isAdmin && (
-                 <>
-                     <Button variant="outline" onClick={() => setIsImportOpen(true)}><Upload className="mr-2 h-4 w-4" />Importar</Button>
-                     <Button variant="outline" onClick={handleExportICS}><Download className="mr-2 h-4 w-4" />Exportar ICS</Button>
-                 </>
+                 <div className="flex items-center gap-2 ml-1">
+                     <Button size="sm" onClick={() => setIsImportOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 font-medium"><Upload className="mr-2 h-3.5 w-3.5" />Importar</Button>
+                 </div>
                  )}
              </div>
            </header>
 
-          {searchQuery.length >= 2 ? <SearchResultsList /> : (
-            <div ref={calendarContentRef} className="flex-grow overflow-auto">
-              <div className="grid grid-cols-[56px_1fr] relative">
-                <div className="sticky top-0 left-0 z-30 row-start-1 col-start-1 bg-background border-b border-r cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setIsFormOpen(true)}>
-                  <div className="w-full h-full flex items-center justify-center"><Plus className="w-5 h-5 text-muted-foreground" /></div>
+            <div ref={calendarContentRef} className="flex-grow overflow-auto relative bg-white dark:bg-slate-950">
+              <div className="grid grid-cols-[60px_1fr] relative min-h-full">
+                <div className="sticky top-0 left-0 z-30 row-start-1 col-start-1 bg-white dark:bg-slate-950 border-b border-r border-slate-200 dark:border-slate-800 flex items-end justify-center pb-2">
+                  <span className="text-[10px] font-medium text-slate-400">GMT-05</span>
                 </div>
-                <div className="sticky top-0 z-30 col-start-2 grid grid-cols-7 bg-background">
-                  {days.map((day) => (
-                    <div key={day.toString()} className="text-center py-2 border-b border-r-2 border-border/60 relative group">
-                      <p className="text-xs font-medium text-muted-foreground uppercase">{format(day, 'eee', { locale: es })}</p>
-                      <p className={cn("text-2xl font-bold w-10 h-10 flex items-center justify-center rounded-full mx-auto mt-1", isToday(day) && "bg-primary text-primary-foreground", !isSameMonth(day, currentDate) && "text-muted-foreground")}>{format(day, 'd')}</p>
-                      <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100" onClick={() => { setSelectedDateForForm(day); setIsFormOpen(true); }}><Plus className="w-4 h-4" /></Button>
-                    </div>
-                  ))}
+                <div className="sticky top-0 z-30 col-start-2 grid grid-cols-7 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+                  {days.map((day) => {
+                    const isTodayFlag = isToday(day);
+                    return (
+                      <div key={day.toString()} className="text-center py-2 border-r border-slate-200 dark:border-slate-800 relative group flex flex-col items-center justify-center min-h-[60px]">
+                        <p className={cn("text-[11px] font-medium uppercase tracking-wider mb-1", isTodayFlag ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400")}>{format(day, 'eee', { locale: es })}</p>
+                        <p className={cn("text-2xl w-10 h-10 flex items-center justify-center rounded-full transition-colors", isTodayFlag ? "bg-blue-600 text-white font-normal shadow-sm" : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer")} onClick={() => { setSelectedDateForForm(day); setIsFormOpen(true); }}>
+                          {format(day, 'd')}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="row-start-2 pt-2 pr-2">
-                  {hours.map(hour => <div key={hour} className="h-16 text-right -translate-y-2.5"><span className="text-xs text-muted-foreground">{format(setHours(new Date(), hour), 'HH:00')}</span></div>)}
+                <div className="row-start-2 pt-2 pr-2 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+                  {hours.map(hour => <div key={hour} className="h-[64px] text-right -translate-y-[10px]"><span className="text-[11px] font-medium text-slate-400 pr-1">{format(setHours(new Date(), hour), 'h a')}</span></div>)}
                 </div>
-                <div className="row-start-2 col-start-2 relative grid grid-cols-7" ref={gridRef}>
+                <div className="row-start-2 col-start-2 relative grid grid-cols-7 bg-white dark:bg-slate-950" ref={gridRef}>
                   {days.map((day) => {
                     const dayPositionedEvents = getEventsForDay(day);
                     return (
-                      <div key={day.toString()} className="day-column border-r-2 border-border/60 relative">
-                        {hours.map(hour => <div key={hour} className="h-16 border-b border-border/30 cursor-pointer hover:bg-accent/50" onClick={(e) => handleSlotClick(e, day, hour)} />)}
+                      <div key={day.toString()} className="day-column border-r border-slate-200 dark:border-slate-800 relative">
+                        {hours.map(hour => <div key={hour} className="h-[64px] border-b border-slate-100 dark:border-slate-800/50 cursor-pointer hover:bg-blue-50/50 transition-colors" onClick={(e) => handleSlotClick(e, day, hour)} />)}
                         {dayPositionedEvents.map(event => {
                           const isCancelled = event.status === 'cancelled';
-                          let style: React.CSSProperties = { top: `${event.top}px`, height: `${event.height}px`, left: `${event.left}%`, width: `calc(${event.width}% - 4px)`, zIndex: event.zIndex };
-                          if (!isCancelled) {
-                              if (event.isImported && !event.colorModified) {
-                                  style.backgroundColor = hexToRgba(event.color, 0.2);
-                                  style.borderColor = event.color;
-                                  style.borderWidth = '1px';
-                                  style.borderStyle = 'solid';
-                              } else {
-                                  style.backgroundColor = event.color;
-                                  style.border = '1px solid white';
-                              }
+                          const isBlinking = blinkingEventId === event.id;
+                          let style: React.CSSProperties = { top: `${event.top}px`, height: `${event.height}px`, left: `${event.left}%`, width: `calc(${event.width}% - 1px)`, zIndex: isBlinking ? 60 : event.zIndex };
+                          if (isCancelled) {
+                              style.backgroundColor = hexToRgba(event.color, 0.03);
+                              style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 6px, ${hexToRgba(event.color, 0.1)} 6px, ${hexToRgba(event.color, 0.1)} 12px)`;
+                              style.borderLeft = `4px solid ${event.color}`;
+                              style.borderRight = `1px solid ${hexToRgba(event.color, 0.2)}`;
+                              style.borderTop = `1px solid ${hexToRgba(event.color, 0.2)}`;
+                              style.borderBottom = `1px solid ${hexToRgba(event.color, 0.2)}`;
+                              style.color = '#64748b';
+                          } else if (event.isImported && !event.colorModified) {
+                              style.backgroundColor = hexToRgba(event.color, 0.2);
+                              style.borderColor = event.color;
+                              style.borderWidth = '1px';
+                              style.borderStyle = 'solid';
+                              style.color = '#000000';
+                          } else {
+                              style.backgroundColor = event.color;
+                              style.border = '1px solid white';
+                              style.color = '#ffffff';
                           }
                           return (
                             <Tooltip key={event.id}>
                               <TooltipTrigger asChild>
-                                <div data-event-id={event.id} onMouseDown={(e) => handleDragStart(e, event)} className={cn("rounded-md p-1 pl-2 absolute overflow-hidden flex flex-col text-left", !isCancelled && 'cursor-pointer', isCancelled && 'is-cancelled', (event.isImported && !event.colorModified) ? 'text-black' : 'text-white')} style={style} onClick={(e) => { if (!isCancelled) { e.stopPropagation(); handleEventClick(event); } }}>
-                                  <div className="flex-grow overflow-hidden">
-                                    <p className="font-semibold text-xs truncate uppercase">{event.clientName}</p>
-                                    <div className="flex items-center gap-1 truncate text-[10px] opacity-90">
-                                      <span>{format(event.startDate, 'h:mm a')} - {format(event.endDate, 'h:mm a')}</span>
-                                      {event.appointmentType === 'nueva' && <Smile className="w-2.5 h-2.5 shrink-0" />}
-                                      {event.appointmentType === 'mantenimiento' && <UserIcon className="w-2.5 h-2.5 shrink-0" />}
-                                    </div>
+                                <div data-event-id={event.id} onMouseDown={(e) => handleDragStart(e, event)} className={cn("rounded p-1 pl-1.5 absolute overflow-hidden flex flex-col text-left transition-all", !isCancelled && 'cursor-pointer hover:brightness-95 shadow-sm', isCancelled && 'opacity-90 grayscale-[0.5]', isBlinking && 'animate-blink ring-2 ring-blue-500 ring-offset-1', (!isCancelled && !(event.isImported && !event.colorModified)) && 'font-medium')} style={style} onClick={(e) => { if (!isCancelled) { e.stopPropagation(); handleEventClick(event); } }}>
+                                  <div className="flex-grow overflow-hidden leading-tight">
+                                    <p className={cn("text-[11px] font-semibold truncate leading-tight tracking-tight", isCancelled && "line-through opacity-70")}>{event.clientName}</p>
+                                    <p className={cn("text-[10px] truncate leading-tight mt-0.5", isCancelled ? "opacity-70 line-through" : "opacity-90")}>
+                                      {format(event.startDate, 'h:mm a')}
+                                    </p>
                                   </div>
-                                  {!isCancelled && <div data-resize-handle="true" className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize flex items-center justify-center group" onMouseDown={(e) => handleResizeStart(e, event)}><GripVertical className="w-4 h-4 opacity-0 group-hover:opacity-100" /></div>}
+                                  {!isCancelled && <div data-resize-handle="true" className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize flex items-center justify-center group" onMouseDown={(e) => handleResizeStart(e, event)}><GripVertical className="w-3 h-3 opacity-0 group-hover:opacity-100" /></div>}
                                 </div>
                               </TooltipTrigger>
-                              <TooltipContent><div className="p-1 text-sm max-w-xs"><p className="font-bold">{event.clientName}</p><p className="text-muted-foreground">{format(event.startDate, 'HH:mm')} - {format(event.endDate, 'HH:mm')}</p></div></TooltipContent>
+                              <TooltipContent>
+                                <div className="p-1 text-sm max-w-xs">
+                                  <p className="font-bold">{event.clientName}</p>
+                                  <p className="text-muted-foreground">{format(event.startDate, 'h:mm a')} - {format(event.endDate, 'h:mm a')}</p>
+                                  {isCancelled && event.description && (
+                                    <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                                      <p className="text-xs text-red-500 font-semibold mb-0.5">Motivo del cambio:</p>
+                                      <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-tight">{event.description}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </TooltipContent>
                             </Tooltip>
                           );
                         })}
                       </div>
                     )
                   })}
-                  {timeIndicatorPosition && <div className="absolute w-full h-0.5 bg-black z-10 pointer-events-none" style={{ top: `${timeIndicatorPosition.top}px`, left: `${timeIndicatorPosition.left}%`, width: `${timeIndicatorPosition.width}%` }}><div className="absolute -left-1 -top-1 w-2.5 h-2.5 rounded-full bg-black"></div></div>}
-                  {dragPreview && <div className="absolute rounded-md p-1 bg-primary/50 border-2 border-primary border-dashed z-50 pointer-events-none" style={{ top: dragPreview.top, left: dragPreview.left, height: dragPreview.height, width: dragPreview.width }}><p className="text-white font-bold text-sm truncate uppercase">{draggingEvent?.event.clientName}</p></div>}
+                  {timeIndicatorPosition && <div className="absolute w-full h-[2px] bg-red-500 z-40 pointer-events-none" style={{ top: `${timeIndicatorPosition.top}px`, left: `${timeIndicatorPosition.left}%`, width: `${timeIndicatorPosition.width}%` }}><div className="absolute -left-1.5 -top-[5px] w-3 h-3 rounded-full bg-red-500 shadow-[0_0_4px_rgba(239,68,68,0.5)]"></div></div>}
+                  {dragPreview && <div className="absolute rounded p-1 bg-blue-500/50 border-2 border-blue-600 border-dashed z-50 pointer-events-none" style={{ top: dragPreview.top, left: dragPreview.left, height: dragPreview.height, width: dragPreview.width }}><p className="text-white font-bold text-xs truncate uppercase">{draggingEvent?.event.clientName}</p></div>}
                 </div>
               </div>
             </div>
-          )}
         </Card>
       </TooltipProvider>
 

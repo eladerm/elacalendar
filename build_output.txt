@@ -1,0 +1,86 @@
+
+> nextn@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env.local, .env.production, .env
+  - Experiments (use with caution):
+    · cpus
+    · memoryBasedWorkersCount
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/sdk-node/build/src/sdk.js
+./node_modules/@opentelemetry/sdk-node/build/src/index.js
+./node_modules/@genkit-ai/core/lib/tracing/node-telemetry-provider.js
+./node_modules/@genkit-ai/core/lib/node.js
+./node_modules/genkit/lib/common.js
+./node_modules/genkit/lib/index.mjs
+./src/ai/genkit.ts
+./src/ai/flows/chatbot-flow.ts
+./src/app/api/meta/webhook/route.ts
+
+./node_modules/require-in-the-middle/index.js
+Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+
+Import trace for requested module:
+./node_modules/require-in-the-middle/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/sdk-node/build/src/sdk.js
+./node_modules/@opentelemetry/sdk-node/build/src/index.js
+./node_modules/@genkit-ai/core/lib/tracing/node-telemetry-provider.js
+./node_modules/@genkit-ai/core/lib/node.js
+./node_modules/genkit/lib/common.js
+./node_modules/genkit/lib/index.mjs
+./src/ai/flows/extract-items-flow.ts
+
+./node_modules/require-in-the-middle/index.js
+Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+
+Import trace for requested module:
+./node_modules/require-in-the-middle/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/sdk-node/build/src/sdk.js
+./node_modules/@opentelemetry/sdk-node/build/src/index.js
+./node_modules/@genkit-ai/core/lib/tracing/node-telemetry-provider.js
+./node_modules/@genkit-ai/core/lib/node.js
+./node_modules/genkit/lib/common.js
+./node_modules/genkit/lib/index.mjs
+./src/ai/genkit.ts
+./src/ai/flows/chatbot-flow.ts
+./src/app/api/meta/webhook/route.ts
+
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.4,0,0.2,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.4,0,0.2,1)&rsqb;` to silence this warning.
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\rmmunoz1\Downloads\project (1)\.next\cache\webpack\client-production\0.pack_' -> 'C:\Users\rmmunoz1\Downloads\project (1)\.next\cache\webpack\client-production\0.pack'
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./src/app/(dashboard)/crm/chat/page.tsx:96:22
+Type error: Property 'to' does not exist on type 'string'.
+
+[0m [90m 94 |[39m [36mconst[39m getFlagEmoji [33m=[39m (countryCode[33m?[39m[33m:[39m string) [33m=>[39m {[0m
+[0m [90m 95 |[39m   [36mif[39m ([33m![39mcountryCode) [36mreturn[39m [32m'🌎'[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 96 |[39m   [36mreturn[39m countryCode[33m.[39mto()[33m.[39mreplace([35m/./g[39m[33m,[39m char [33m=>[39m [33mString[39m[33m.[39mfromCodePoint(char[33m.[39mcharCodeAt([35m0[39m) [33m+[39m [35m127397[39m))[33m;[39m[0m
+[0m [90m    |[39m                      [31m[1m^[22m[39m[0m
+[0m [90m 97 |[39m }[33m;[39m[0m
+[0m [90m 98 |[39m[0m
+[0m [90m 99 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mCRMChatPage[39m() {[0m
+Next.js build worker exited with code: 1 and signal: null

@@ -127,7 +127,7 @@
     @apply text-foreground overflow-x-hidden;
     background-color: var(--bg-app);
     color: var(--text-primary);
-    font-family: var(--font-poppins), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    font-family: var(--font-outfit), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   }
   
   [data-radix-dialog-overlay] {
@@ -150,5 +150,14 @@
   }
   .is-cancelled p {
       @apply text-muted-foreground;
+  }
+  
+  @keyframes blink-animation {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.02); filter: brightness(1.2); box-shadow: 0 0 15px rgba(255,255,255,0.8); z-index: 50; }
+  }
+  
+  .animate-blink {
+    animation: blink-animation 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 }

@@ -56,6 +56,12 @@ import {
   CheckCircle,
   DollarSign,
   Loader2,
+  User,
+  Clock,
+  Sparkles,
+  CreditCard,
+  Palette,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
@@ -374,270 +380,327 @@ export function EventFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg grid-rows-[auto_minmax(0,1fr)_auto] max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>Agendar Cita en {branch}</DialogTitle>
-        </DialogHeader>
-        <div className="overflow-y-auto pr-2 -mr-4">
+      <DialogContent className="max-w-xl p-0 overflow-hidden bg-slate-50 border-0 shadow-2xl rounded-2xl">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm p-2 bg-muted rounded-md">
-                <CalendarDays className="h-4 w-4" />
-                <span>{format(selectedDate, "eeee, d 'de' MMMM, yyyy", { locale: es })}</span>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col max-h-[90vh]">
+            <DialogHeader className="p-5 bg-white border-b shrink-0 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between shadow-sm z-10 relative">
+              <div>
+                <DialogTitle className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                  <CalendarDays className="w-5 h-5 text-primary" />
+                  Agendar Cita en {branch}
+                </DialogTitle>
+                <p className="text-xs font-medium text-muted-foreground mt-1 tracking-wide capitalize">
+                  {format(selectedDate, "eeee, d 'de' MMMM, yyyy", { locale: es })}
+                </p>
               </div>
-              <FormField
-                control={form.control}
-                name="appointmentType"
-                render={({ field }) => (
-                  <FormItem className="space-y-0">
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex items-center gap-4"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="nueva" id="nueva" />
-                          <FormLabel htmlFor="nueva" className="font-bold text-xs uppercase cursor-pointer">Nueva</FormLabel>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="mantenimiento" id="mantenimiento" />
-                          <FormLabel htmlFor="mantenimiento" className="font-bold text-xs uppercase cursor-pointer">Mant.</FormLabel>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="clientId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cliente</FormLabel>
-                  <ClientSearchCombobox 
-                    clients={clients}
-                    value={field.value}
-                    onChange={field.onChange}
+              
+              <div className="mr-6">
+                <FormField
+                    control={form.control}
+                    name="appointmentType"
+                    render={({ field }) => (
+                      <FormItem className="space-y-0">
+                        <FormControl>
+                          <div className="flex bg-slate-100 p-1 rounded-lg border shadow-inner">
+                            <button
+                              type="button"
+                              onClick={() => field.onChange('nueva')}
+                              className={cn("px-4 py-1.5 rounded-md text-xs font-semibold transition-all", field.value === 'nueva' ? "bg-white text-primary shadow-sm ring-1 ring-black/5" : "text-muted-foreground hover:text-slate-700")}
+                            >
+                              Nueva Cita
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => field.onChange('mantenimiento')}
+                              className={cn("px-4 py-1.5 rounded-md text-xs font-semibold transition-all", field.value === 'mantenimiento' ? "bg-white text-primary shadow-sm ring-1 ring-black/5" : "text-muted-foreground hover:text-slate-700")}
+                            >
+                              Mantenimiento
+                            </button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
                   />
-                   <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {clientIdValue === 'new' && (
-              <div className="grid grid-cols-2 gap-4 border p-4 rounded-md col-span-2">
-                 <FormField
-                    control={form.control}
-                    name="newClientName"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Nuevo Nombre</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Nombre" {...field} className="uppercase" />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="newClientLastName"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Nuevo Apellido (Opcional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Apellido" {...field} className="uppercase" />
-                        </FormControl>
-                         <FormMessage />
-                    </FormItem>
-                    )}
-                />
               </div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="startTime"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Hora Inicio</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                            <SelectTrigger>
-                            <SelectValue placeholder="Selecciona" />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            {timeOptions.map(time => <SelectItem key={`start-${time}`} value={time}>{time}</SelectItem>)}
-                        </SelectContent>
-                        </Select>
-                         <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="endTime"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Hora Fin</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                            <SelectTrigger>
-                            <SelectValue placeholder="Selecciona" />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            {endTimeOptions.map(time => <SelectItem key={`end-${time}`} value={time}>{time}</SelectItem>)}
-                        </SelectContent>
-                        </Select>
-                         <FormMessage />
-                    </FormItem>
-                    )}
-                />
-            </div>
+            </DialogHeader>
 
-            <FormField
-              control={form.control}
-              name="serviceIds"
-              render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Servicios</FormLabel>
-                     <Popover>
-                        <PopoverTrigger asChild>
-                             <FormControl>
-                                <Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}>
-                                     <span className="truncate">{selectedServices.length > 0 ? `${selectedServices.length} servicios seleccionados` : "Seleccionar servicios"}</span>
-                                </Button>
-                             </FormControl>
-                        </PopoverTrigger>
-                         <PopoverContent className="w-full p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
-                            <Command>
-                                <CommandInput placeholder="Buscar servicio..." />
-                                <CommandList>
-                                <CommandEmpty>No se encontraron servicios.</CommandEmpty>
-                                <CommandGroup>
-                                    {services.map(service => (
-                                    <CommandItem
-                                        key={service.id}
-                                        value={service.name}
-                                        onSelect={() => handleServiceToggle(service.id)}
-                                    >
-                                        <CheckCircle className={cn("mr-2 h-4 w-4", serviceIdsValue.includes(service.id) ? "opacity-100" : "opacity-0")} />
-                                        {service.name}
-                                    </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
-                    <div className="space-y-1 pt-1">
-                        {selectedServices.map(service => (
-                            <Badge key={service.id} variant="secondary" className="mr-1">
-                                {service.name}
-                            </Badge>
-                        ))}
-                    </div>
-                </FormItem>
-              )}
-            />
+            <div className="flex-1 overflow-y-auto p-5 scrollbar-thin">
+                <div className="flex flex-col gap-5">
+                    
+                    {/* CONTENIDO EN COLUMNA ÚNICA */}
+                    <div className="w-full space-y-5">
+                        
+                        <div className="bg-white p-4 rounded-xl border shadow-sm space-y-3">
+                            <div className="flex items-center gap-2 text-primary font-semibold text-sm border-b pb-2">
+                                <User className="w-4 h-4" /> Cliente y Paciente
+                            </div>
+                            
+                            <FormField
+                                control={form.control}
+                                name="clientId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <ClientSearchCombobox 
+                                            clients={clients}
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                        />
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observaciones (Opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Ej. El cliente prefiere..." {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="amountPaid"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Abono (Opcional)</FormLabel>
-                        <div className="relative">
-                            <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <FormControl>
-                            <Input type="number" placeholder="0.00" {...field} />
-                            </FormControl>
-                        </div>
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="sessionNumber"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel># de Sesión (Opcional)</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="Ej. 1" {...field} />
-                        </FormControl>
-                        </FormItem>
-                    )}
-                />
-            </div>
-            
-
-            <Controller
-              name="color"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Color de la Etiqueta</FormLabel>
-                    <div className="flex flex-wrap gap-2 pt-2">
-                    {colors.map((c) => (
-                        <TooltipProvider key={c.value}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                    type="button"
-                                    onClick={() => field.onChange(c.value)}
-                                    className={cn('w-7 h-7 rounded-full border-2 transition-transform transform hover:scale-110', field.value === c.value ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-transparent')}
-                                    style={{ backgroundColor: c.value }}
-                                    aria-label={c.label}
+                            {clientIdValue === 'new' && (
+                                <div className="grid grid-cols-2 gap-4 pt-2 animate-in slide-in-from-top-2">
+                                    <FormField
+                                        control={form.control}
+                                        name="newClientName"
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs font-semibold text-slate-500">Nuevo Nombre</FormLabel>
+                                            <FormControl>
+                                            <Input placeholder="Ej. MARÍA" {...field} className="uppercase bg-slate-50 h-9 text-sm" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
                                     />
-                                </TooltipTrigger>
-                                <TooltipContent><p>{c.label}</p></TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    ))}
-                    </div>
-                </FormItem>
-              )}
-            />
+                                    <FormField
+                                        control={form.control}
+                                        name="newClientLastName"
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs font-semibold text-slate-500">Nuevo Apellido</FormLabel>
+                                            <FormControl>
+                                            <Input placeholder="Ej. PÉREZ" {...field} className="uppercase bg-slate-50 h-9 text-sm" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            )}
+                        </div>
 
-            <DialogFooter className="pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Guardar Cita
-              </Button>
+                        <div className="bg-white p-4 rounded-xl border shadow-sm space-y-3">
+                            <div className="flex items-center gap-2 text-primary font-semibold text-sm border-b pb-2">
+                                <Clock className="w-4 h-4" /> Horario Reservado
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="startTime"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs font-semibold text-slate-500">Hora de Inicio</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger className="bg-slate-50 font-medium text-sm h-10">
+                                                <SelectValue placeholder="--:--" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {timeOptions.map(time => <SelectItem key={`start-${time}`} value={time}>{time}</SelectItem>)}
+                                        </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="endTime"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs font-semibold text-slate-500">Hora de Fin</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger className="bg-slate-50 font-medium text-sm h-10">
+                                                <SelectValue placeholder="--:--" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {endTimeOptions.map(time => <SelectItem key={`end-${time}`} value={time}>{time}</SelectItem>)}
+                                        </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {/* BLOQUE INFERIOR: Servicios, Finanzas, Extras */}
+                    <div className="w-full space-y-5">
+                        
+                        <div className="bg-white p-4 rounded-xl border shadow-sm space-y-3">
+                            <div className="flex items-center gap-2 text-primary font-semibold text-sm border-b pb-2">
+                                <Sparkles className="w-4 h-4" /> Tratamientos
+                            </div>
+                            <FormField
+                                control={form.control}
+                                name="serviceIds"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button variant="outline" role="combobox" className={cn("w-full justify-between bg-slate-50 h-9 font-normal text-sm", !field.value?.length && "text-muted-foreground")}>
+                                                        <span className="truncate">{selectedServices.length > 0 ? `${selectedServices.length} tratamientos seleccionados` : "Añadir tratamientos..."}</span>
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[300px] p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
+                                                <Command>
+                                                    <CommandInput placeholder="Buscar servicio..." className="h-9" />
+                                                    <CommandList>
+                                                    <CommandEmpty>No se encontraron servicios.</CommandEmpty>
+                                                    <CommandGroup>
+                                                        {services.map(service => (
+                                                        <CommandItem
+                                                            key={service.id}
+                                                            value={service.name}
+                                                            onSelect={() => handleServiceToggle(service.id)}
+                                                            className="text-sm"
+                                                        >
+                                                            <CheckCircle className={cn("mr-2 h-3.5 w-3.5 text-primary", serviceIdsValue.includes(service.id) ? "opacity-100" : "opacity-0")} />
+                                                            {service.name}
+                                                        </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                        <div className="flex flex-wrap gap-1.5 pt-1">
+                                            {selectedServices.map(service => (
+                                                <Badge key={service.id} variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px] py-0">
+                                                    {service.name}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="bg-white p-4 rounded-xl border shadow-sm space-y-3">
+                            <div className="flex items-center gap-2 text-emerald-600 font-semibold text-sm border-b pb-2">
+                                <CreditCard className="w-4 h-4" /> Gestión Financiera
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <FormField
+                                    control={form.control}
+                                    name="amountPaid"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel className="text-xs font-semibold text-slate-500">Abono Inicial</FormLabel>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none">
+                                                <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+                                            </div>
+                                            <FormControl>
+                                            <Input type="number" placeholder="0.00" {...field} className="pl-8 bg-emerald-50/50 border-emerald-100 font-medium text-sm text-emerald-900 h-9" />
+                                            </FormControl>
+                                        </div>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="sessionNumber"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel className="text-xs font-semibold text-slate-500"># Sesión</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="Ej. 1" {...field} className="bg-slate-50 font-medium text-sm text-center h-9" />
+                                        </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-4 rounded-xl border shadow-sm space-y-3">
+                            <div className="flex items-center gap-2 text-slate-600 font-semibold text-sm border-b pb-2">
+                                <Palette className="w-4 h-4" /> Etiqueta de Color
+                            </div>
+                            <Controller
+                                name="color"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <div className="flex flex-wrap gap-2">
+                                    {colors.map((c) => (
+                                        <TooltipProvider key={c.value}>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => field.onChange(c.value)}
+                                                        className={cn('w-6 h-6 rounded-full border transition-transform transform hover:scale-110 shadow-sm', field.value === c.value ? 'border-primary ring-2 ring-primary ring-offset-2 scale-110' : 'border-slate-200')}
+                                                        style={{ backgroundColor: c.value }}
+                                                        aria-label={c.label}
+                                                    />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="font-semibold text-xs"><p>{c.label}</p></TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    ))}
+                                    </div>
+                                )}
+                            />
+                        </div>
+
+                    </div>
+                </div>
+
+                {/* Notas */}
+                <div className="mt-5 w-full">
+                    <div className="bg-white p-4 rounded-xl border shadow-sm space-y-3">
+                            <div className="flex items-center gap-2 text-slate-600 font-semibold text-sm border-b pb-2">
+                                <FileText className="w-4 h-4" /> Notas y Observaciones Técnicas
+                            </div>
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormControl>
+                                        <Textarea placeholder="Ej. El paciente reporta sensibilidad..." {...field} className="resize-none min-h-[60px] bg-slate-50 text-sm" />
+                                    </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                </div>
+            </div>
+
+            <DialogFooter className="p-4 bg-white border-t shrink-0 flex items-center justify-between">
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Los datos se sincronizan con AnythingLLM</span>
+                </div>
+                <div className="flex gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                        className="font-medium h-9 text-sm"
+                    >
+                        Cancelar
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting} className="font-semibold h-9 text-sm px-6 shadow-sm">
+                        {isSubmitting && (
+                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                        )}
+                        Confirmar y Agendar
+                    </Button>
+                </div>
             </DialogFooter>
           </form>
         </Form>
-        </div>
       </DialogContent>
     </Dialog>
   );

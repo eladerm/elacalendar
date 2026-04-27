@@ -23,11 +23,8 @@ export function FloatingChat() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // No renderizar en la ruta de inicio de sesión o fuera del CRM
+  // (El early return ha sido movido hacia abajo para no romper las reglas de Hooks de React)
   const pathname = usePathname();
-  if (!pathname.startsWith('/crm')) {
-      return null;
-  }
 
   // Cargar historial del Local Storage
   useEffect(() => {
@@ -133,6 +130,10 @@ export function FloatingChat() {
       setIsTyping(false);
     }
   };
+
+  if (pathname === '/login') {
+      return null;
+  }
 
   return (
     <>
