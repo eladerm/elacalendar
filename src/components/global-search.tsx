@@ -189,10 +189,10 @@ export function GlobalSearch() {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300] animate-in fade-in duration-150" />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in fade-in duration-150" />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-[301] flex items-start justify-center pt-[10vh] px-4">
+      <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[10vh] px-4">
         <div
           ref={panelRef}
           className="w-full max-w-[620px] bg-white rounded-2xl shadow-[0_32px_80px_rgba(0,0,0,0.25)] border border-slate-200/80 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200"
