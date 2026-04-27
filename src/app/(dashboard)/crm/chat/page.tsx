@@ -528,7 +528,7 @@ export default function CRMChatPage() {
                   className={cn(
                     "flex-1 py-1.5 text-[10px] font-medium rounded-md transition-all",
                     activeFilter === f
-                      ? "bg-[hsl(var(--primary))] text-white shadow-sm"
+                      ? "bg-[#25D366] text-white shadow-sm"
                       : "text-[#8696a0] hover:text-[#111b21]"
                   )}
                 >
@@ -575,11 +575,11 @@ export default function CRMChatPage() {
             >
               {/* Active indicator */}
               {selectedChat?.id === chat.id && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[hsl(var(--primary))]" />
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#25D366]" />
               )}
               {/* Avatar */}
               <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 font-semibold text-white text-lg"
-                style={{ background: `hsl(var(--primary))` }}>
+                style={{ background: '#25D366' }}>
                 {cleanName(chat.name)[0]}
               </div>
               <div className="flex-1 min-w-0">
@@ -596,7 +596,7 @@ export default function CRMChatPage() {
                   <p className="text-[13px] text-[#8696a0] truncate flex-1 mr-2">{chat.lastMessage}</p>
                   {(chat.unreadCount ?? 0) > 0 && (
                     <div className="w-[20px] h-[20px] shrink-0 rounded-full flex items-center justify-center text-[11px] font-semibold text-white"
-                      style={{ background: `hsl(var(--primary))` }}>
+                      style={{ background: '#25D366' }}>
                       {chat.unreadCount}
                     </div>
                   )}
@@ -610,7 +610,7 @@ export default function CRMChatPage() {
       {/* COLUMNA 2 & 3: ÁREA DE MENSAJES Y DETALLE */}
       {!selectedChat ? (
         <div className="flex-1 flex flex-col items-center justify-center h-full" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)/0.08) 0%, #f0f2f5 100%)' }}>
-          <div className="w-24 h-24 rounded-full flex items-center justify-center mb-5 opacity-20" style={{ background: `hsl(var(--primary))` }}>
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mb-5 opacity-20" style={{ background: '#25D366' }}>
             <MessageCircle className="w-12 h-12 text-white" />
           </div>
           <h3 className="text-2xl font-light text-[#41525d]">Élapiel CRM</h3>
@@ -625,7 +625,7 @@ export default function CRMChatPage() {
             <div className="px-4 py-2.5 bg-[#f0f2f5] flex justify-between items-center border-b border-[#e9edef] shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white text-base shrink-0"
-                  style={{ background: `hsl(var(--primary))` }}>
+                  style={{ background: '#25D366' }}>
                   {cleanName(selectedChat.name)[0]}
                 </div>
                 <div>
@@ -739,10 +739,10 @@ export default function CRMChatPage() {
                         onClick={() => handleSelectQuickReply(qr)}
                         className={cn(
                           "px-4 py-2.5 hover:bg-[#f5f6f6] cursor-pointer transition-colors border-l-2 border-transparent",
-                          idx === 0 ? "bg-[#f0f2f5] border-[hsl(var(--primary))]" : "hover:border-[hsl(var(--primary))]"
+                          idx === 0 ? "bg-[#f0f2f5] border-[#25D366]" : "hover:border-[#25D366]"
                         )}
                       >
-                        <div className="text-[12px] font-semibold mb-0.5" style={{ color: `hsl(var(--primary))` }}>{qr.shortcut}</div>
+                        <div className="text-[12px] font-semibold mb-0.5" style={{ color: '#128C7E' }}>{qr.shortcut}</div>
                         <div className="text-[12px] text-[#8696a0] truncate">{qr.text}</div>
                       </div>
                     ))}
@@ -783,13 +783,13 @@ export default function CRMChatPage() {
                     onClick={handleSend}
                     disabled={isSending}
                     className="w-10 h-10 flex items-center justify-center rounded-full shrink-0 text-white transition-all disabled:opacity-50 shadow-md hover:scale-105"
-                    style={{ background: `hsl(var(--primary))` }}
+                    style={{ background: '#25D366' }}
                   >
                     <Send className="w-[20px] h-[20px]" />
                   </button>
                 ) : (
                   <button className="w-10 h-10 flex items-center justify-center rounded-full shrink-0 text-white transition-all shadow-md"
-                    style={{ background: `hsl(var(--primary))` }}
+                    style={{ background: '#25D366' }}
                   >
                     <Mic className="w-[20px] h-[20px]" />
                   </button>
@@ -801,8 +801,8 @@ export default function CRMChatPage() {
           {/* COLUMNA 3: DETALLE DEL CONTACTO */}
           <div className="w-[300px] border-l border-border bg-background flex flex-col h-full shrink-0">
             <div className="p-6 flex flex-col items-center bg-muted/30 border-b border-border text-center relative group">
-              <div className="w-20 h-20 rounded-full flex items-center justify-center font-semibold text-3xl text-primary-foreground mb-3 shadow-md"
-                style={{ background: `hsl(var(--primary))` }}>
+              <div className="w-20 h-20 rounded-full flex items-center justify-center font-semibold text-3xl text-white mb-3 shadow-md"
+                style={{ background: '#25D366' }}>
                 {cleanName(selectedChat.name)[0]}
               </div>
               
@@ -818,13 +818,13 @@ export default function CRMChatPage() {
                   <Input value={editContactData.phone} onChange={e => setEditContactData({ ...editContactData, phone: e.target.value })} placeholder="Teléfono" className="h-7 text-xs text-center bg-background" />
                   <div className="flex gap-2 justify-center mt-2">
                     <Button onClick={() => setIsEditingContact(false)} variant="ghost" size="sm" className="h-6 text-[10px]">Cancelar</Button>
-                    <Button onClick={handleSaveContact} variant="default" size="sm" className="h-6 text-[10px] bg-primary text-primary-foreground">Guardar</Button>
+                    <Button onClick={handleSaveContact} variant="default" size="sm" className="h-6 text-[10px] bg-[#25D366] hover:bg-[#128C7E] text-white">Guardar</Button>
                   </div>
                 </div>
               )}
               
               <div className="flex flex-wrap items-center justify-center gap-1 mt-2">
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#25D366]/10 text-[#128C7E]">
                   {selectedChat.funnelType === 'support' ? 'Soporte CRM' : 'Ventas'}
                 </span>
                 {(selectedChat as any).tags?.map((tag: string) => (
@@ -952,7 +952,7 @@ export default function CRMChatPage() {
 
             <div className="p-6 mt-auto flex flex-col gap-2">
               {selectedChat.status === 'closed' ? (
-                <Button onClick={() => handleUpdateStatus('open')} variant="outline" className="w-full bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground font-normal text-xs  rounded-xl transition-all h-12">
+                <Button onClick={() => handleUpdateStatus('open')} variant="outline" className="w-full bg-[#25D366]/5 text-[#128C7E] border-[#25D366]/20 hover:bg-[#25D366] hover:text-white font-normal text-xs  rounded-xl transition-all h-12">
                   Reabrir Conversación
                 </Button>
               ) : (
