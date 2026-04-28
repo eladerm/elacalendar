@@ -467,8 +467,45 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
 
           const parsedNodes = parseField(data.nodes);
           const parsedEdges = parseField(data.edges);
-          if (parsedNodes.length) setNodes(parsedNodes);
-          if (parsedEdges.length) setEdges(parsedEdges);
+          let finalNodes = parsedNodes;
+          let finalEdges = parsedEdges;
+          
+          if (finalNodes.length > 0) {
+            // Apply vertical auto-layout on load
+            const dagreGraph = new dagre.graphlib.Graph();
+            dagreGraph.setDefaultEdgeLabel(() => ({}));
+            dagreGraph.setGraph({ rankdir: 'TB', nodesep: 100, ranksep: 100 });
+
+            finalNodes.forEach((node: Node) => {
+              dagreGraph.setNode(node.id, { width: 350, height: 100 });
+            });
+
+            finalEdges.forEach((edge: Edge) => {
+              dagreGraph.setEdge(edge.source, edge.target);
+            });
+
+            dagre.layout(dagreGraph);
+
+            finalNodes = finalNodes.map((node: Node) => {
+              const nodeWithPosition = dagreGraph.node(node.id);
+              if (nodeWithPosition) {
+                return {
+                  ...node,
+                  position: {
+                    x: nodeWithPosition.x - 350 / 2,
+                    y: nodeWithPosition.y - 100 / 2,
+                  },
+                };
+              }
+              return node;
+            });
+            setNodes(finalNodes);
+          }
+          if (finalEdges.length > 0) {
+            // Ensure all edges are straight
+            finalEdges = finalEdges.map((e: Edge) => ({ ...e, type: 'straight' }));
+            setEdges(finalEdges);
+          }
         }
       } catch (e) {
         console.error('Error cargando bot:', e);
@@ -863,6 +900,7 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
           const isDone = isSimulating && tgtIdx < simStep;
           return {
             ...e,
+            type: 'straight',
             animated: isActive || (!isSimulating && e.animated),
             style: isActive
               ? { stroke: '#10b981', strokeWidth: 3, filter: 'drop-shadow(0 0 6px #10b981)' }
@@ -887,7 +925,6 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
         minZoom={0.1}
         maxZoom={2}
         colorMode="light"
-        nodesDraggable={false}
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} color="#cbd5e1" />
         <Controls className="bg-white border-slate-200 fill-slate-500 shadow-sm" />

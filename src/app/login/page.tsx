@@ -175,7 +175,7 @@ export default function LoginPage() {
                           type="text" 
                           {...register('identifier')} 
                           placeholder="Ej. administrador" 
-                          className="w-full bg-white/[0.07] border border-white/[0.12] rounded-2xl px-5 h-13 text-sm font-light text-white placeholder:text-white/20 focus:ring-1 focus:ring-white/30 focus:border-white/30 focus:bg-white/[0.10] transition-all shadow-none backdrop-blur-sm" 
+                          className="w-full bg-white/[0.07] border border-white/[0.12] rounded-2xl px-5 h-13 text-sm font-light text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/50 focus-visible:ring-offset-0 focus:border-white/50 focus:bg-white/[0.10] transition-all shadow-none backdrop-blur-sm" 
                         />
                       </div>
                       {errors.identifier && <p className="text-[10px] text-red-400 font-medium">{errors.identifier.message}</p>}
@@ -192,7 +192,7 @@ export default function LoginPage() {
                           type="password" 
                           {...register('password')} 
                           placeholder="••••••••" 
-                          className="w-full bg-white/[0.07] border border-white/[0.12] rounded-2xl px-5 h-13 text-sm font-light text-white placeholder:text-white/20 focus:ring-1 focus:ring-white/30 focus:border-white/30 focus:bg-white/[0.10] transition-all shadow-none backdrop-blur-sm" 
+                          className="w-full bg-white/[0.07] border border-white/[0.12] rounded-2xl px-5 h-13 text-sm font-light text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/50 focus-visible:ring-offset-0 focus:border-white/50 focus:bg-white/[0.10] transition-all shadow-none backdrop-blur-sm" 
                         />
                       </div>
                       {errors.password && <p className="text-[10px] text-red-400 font-medium">{errors.password.message}</p>}

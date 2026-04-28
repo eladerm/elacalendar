@@ -651,10 +651,6 @@ export function WeeklyCalendar({ branch, initialDate, onEventUpdate, onDateChang
                     {isSearchDropdownOpen && <SearchDropdown />}
                  </div>
                  
-                 <div className="hidden md:flex items-center gap-1">
-                   <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="rounded-full text-slate-500 hover:bg-slate-100"><Settings className="w-5 h-5" /></Button></TooltipTrigger><TooltipContent>Ajustes</TooltipContent></Tooltip>
-                 </div>
-
                  {isAdmin && (
                  <div className="flex items-center gap-2 ml-1">
                      <Button size="sm" onClick={() => setIsImportOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 font-medium"><Upload className="mr-2 h-3.5 w-3.5" />Importar</Button>

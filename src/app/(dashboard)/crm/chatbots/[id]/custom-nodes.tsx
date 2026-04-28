@@ -153,22 +153,40 @@ export const ButtonMessageNode = memo(({ data, selected }: any) => {
       </div>
 
       <div className="px-3 pb-3 flex flex-col gap-2">
-        <div className="flex flex-col gap-2">
-            {buttons.map((btn: string, i: number) => (
-            <div key={i} className="relative flex items-center bg-white border border-slate-200 rounded-lg px-3 py-2">
-                <span className="w-full text-[12px] text-slate-700 font-medium truncate">
-                   {btn || `Opción ${i + 1}`}
-                </span>
-                <Handle
-                   type="source"
-                   position={Position.Bottom}
-                   id={`btn-${i}`}
-                   style={{ top: '50%', right: '-6px', position: 'absolute' }}
-                   className="w-3 h-3 bg-white border-[2px] border-blue-400"
-                />
-            </div>
-            ))}
+        <div className="flex items-center gap-1 mb-1 justify-center">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">← izq · ↓ abajo · der →</span>
         </div>
+        {buttons.map((btn: string, i: number) => (
+          <div key={i} className="relative flex items-center bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-lg px-3 py-2.5 mx-2">
+            {/* Handle IZQUIERDA */}
+            <Handle
+              type="source"
+              position={Position.Left}
+              id={`btn-left-${i}`}
+              style={{ top: '50%', left: '-7px', position: 'absolute', transform: 'translateY(-50%)' }}
+              className="w-3 h-3 bg-white border-[2px] border-violet-400"
+            />
+            <span className="w-full text-[12px] text-blue-700 font-semibold truncate text-center">
+               {btn || `Opción ${i + 1}`}
+            </span>
+            {/* Handle DERECHA */}
+            <Handle
+              type="source"
+              position={Position.Right}
+              id={`btn-right-${i}`}
+              style={{ top: '50%', right: '-7px', position: 'absolute', transform: 'translateY(-50%)' }}
+              className="w-3 h-3 bg-white border-[2px] border-amber-400"
+            />
+            {/* Handle ABAJO */}
+            <Handle
+              type="source"
+              position={Position.Bottom}
+              id={`btn-${i}`}
+              style={{ bottom: '-7px', left: '50%', transform: 'translateX(-50%)', position: 'absolute' }}
+              className="w-3 h-3 bg-white border-[2px] border-blue-500"
+            />
+          </div>
+        ))}
       </div>
     </div>
   );
