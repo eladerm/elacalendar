@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import dagre from 'dagre';
 import { db } from '@/lib/firebase';
 import type { ChatbotConfig } from '@/lib/types'
 import { TriggerNode, MessageNode, OptionNode, ButtonMessageNode, WaitNode, ConditionNode, TagNode, AssignNode, CaptureNode, MediaNode, TimeRoutingNode, ApiCallNode, CloseTicketNode, BotHandoffNode } from './custom-nodes';
@@ -471,34 +470,6 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
           let finalEdges = parsedEdges;
           
           if (finalNodes.length > 0) {
-            // Apply vertical auto-layout on load
-            const dagreGraph = new dagre.graphlib.Graph();
-            dagreGraph.setDefaultEdgeLabel(() => ({}));
-            dagreGraph.setGraph({ rankdir: 'TB', nodesep: 100, ranksep: 100 });
-
-            finalNodes.forEach((node: Node) => {
-              dagreGraph.setNode(node.id, { width: 350, height: 100 });
-            });
-
-            finalEdges.forEach((edge: Edge) => {
-              dagreGraph.setEdge(edge.source, edge.target);
-            });
-
-            dagre.layout(dagreGraph);
-
-            finalNodes = finalNodes.map((node: Node) => {
-              const nodeWithPosition = dagreGraph.node(node.id);
-              if (nodeWithPosition) {
-                return {
-                  ...node,
-                  position: {
-                    x: nodeWithPosition.x - 350 / 2,
-                    y: nodeWithPosition.y - 100 / 2,
-                  },
-                };
-              }
-              return node;
-            });
             setNodes(finalNodes);
           }
           if (finalEdges.length > 0) {
@@ -661,29 +632,38 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
   }, [nodes.length]);
 
   const addNodeConnected = useCallback((type: string, parentId: string) => {
-    // Work with fresh snapshots of nodes/edges via setter functions
-    let nextNodes: Node[] = [];
-    let nextEdges: Edge[] = [];
+    const newNodeId = `${type}-${Date.now()}`;
+    let newPosition = { x: 0, y: 0 };
 
     setNodes(currentNodes => {
       const parentNode = currentNodes.find(n => n.id === parentId);
-      if (!parentNode) { nextNodes = currentNodes; return currentNodes; }
+      if (parentNode) {
+        newPosition = { x: parentNode.position.x, y: parentNode.position.y + 200 };
+      }
 
-      const newNodeId = `${type}-${Date.now()}`;
       const newNode: Node = {
         id: newNodeId,
         type: type as any,
-        position: { x: parentNode.position.x, y: parentNode.position.y + 200 },
+        position: newPosition,
         selected: true,
         data: {
-          label: type === 'message' ? 'Nuevo Mensaje'
-               : type === 'trigger' ? 'hola, info'
-               : type === 'buttonMessage' ? 'Escribe tu mensaje aquí...'
-               : undefined,
-          options:    type === 'option'        ? ['Sí', 'No'] : undefined,
-          buttons:    type === 'buttonMessage' ? ['Opción 1', 'Opción 2'] : undefined,
+          label:      type === 'message' || type === 'buttonMessage' ? 'Nuevo Mensaje' :
+                      type === 'trigger'       ? 'nueva palabra' :
+                      type === 'wait'          ? 'Pausa' :
+                      type === 'condition'     ? 'Condición' :
+                      type === 'option'        ? 'Opción 1' :
+                      type === 'assign'        ? 'Asignar a equipo' :
+                      type === 'capture'       ? 'Capturar dato' :
+                      type === 'media'         ? 'Adjunto' :
+                      type === 'timeRouting'   ? 'Validar Horario' :
+                      type === 'apiCall'       ? 'Llamada API' :
+                      type === 'closeTicket'   ? 'Cerrar Chat' :
+                      type === 'botHandoff'    ? 'Pausar Bot' : 'Nodo',
+          buttons:    type === 'buttonMessage' ? ['Opción 1'] : undefined,
+          options:    type === 'option'        ? ['A', 'B'] : undefined,
+          condition:  type === 'condition'     ? '== "x"' : undefined,
           seconds:    type === 'wait'          ? 60 : undefined,
-          condition:  type === 'condition'     ? '' : undefined,
+          unit:       type === 'wait'          ? 'segundos' : undefined,
           tags:       type === 'tag'           ? [] : undefined,
           department: type === 'assign'        ? '' : undefined,
           question:   type === 'capture'       ? '¿Cuál es tu dato?' : undefined,
@@ -692,14 +672,10 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
         },
       };
 
-      nextNodes = [...currentNodes.map(n => ({ ...n, selected: false })), newNode];
-      return nextNodes;
+      return [...currentNodes.map(n => ({ ...n, selected: false })), newNode];
     });
 
     setEdges(currentEdges => {
-      const newNodeId = nextNodes[nextNodes.length - 1]?.id;
-      if (!newNodeId) return currentEdges;
-
       const newEdge: Edge = {
         id: `e${parentId}-${newNodeId}`,
         source: parentId,
@@ -708,30 +684,10 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
         animated: true,
         style: { stroke: '#10b981', strokeWidth: 2 }
       };
-      nextEdges = [...currentEdges, newEdge];
-
-      // Run dagre layout on the combined arrays
-      const dagreGraph = new dagre.graphlib.Graph();
-      dagreGraph.setDefaultEdgeLabel(() => ({}));
-      dagreGraph.setGraph({ rankdir: 'TB', nodesep: 80, ranksep: 120 });
-      nextNodes.forEach(n => dagreGraph.setNode(n.id, { width: 320, height: 120 }));
-      nextEdges.forEach(e => dagreGraph.setEdge(e.source, e.target));
-      dagre.layout(dagreGraph);
-
-      const laidOut = nextNodes.map(n => {
-        const pos = dagreGraph.node(n.id);
-        return { ...n, position: { x: pos.x - 160, y: pos.y - 60 } };
-      });
-
-      // Apply laid-out nodes
-      setNodes(laidOut);
-
-      // Select the new node so config panel opens
-      const newNodeId2 = laidOut[laidOut.length - 1]?.id;
-      if (newNodeId2) setTimeout(() => setSelectedNodeId(newNodeId2), 50);
-
-      return nextEdges;
+      return [...currentEdges, newEdge];
     });
+
+    setTimeout(() => setSelectedNodeId(newNodeId), 50);
   }, [setNodes, setEdges, setSelectedNodeId]);
 
   const updateNodeData = useCallback((nodeId: string, newData: any) => {

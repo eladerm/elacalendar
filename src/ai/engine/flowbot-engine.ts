@@ -99,12 +99,38 @@ export async function processFlowbotMessage(input: { phone: string; text: string
   // Entramos aquí si hay un gatillo activado recién o si el usuario ya venía atascado en un nodo.
   // En Mercately, si estás atorado en un nodo de Menú, se espera que elijas un número/condición.
 
-  let currentNode = findNode(botState.botId!, botState.activeNodeId!);
+  let currentNode = botState.botId ? findNode(botState.botId, botState.activeNodeId!) : undefined;
   
-  if (!currentNode) {
-     console.error("Nodo activo no encontrado. Reiniciando estado del bot.");
+  if (botState.botId && !currentNode) {
+     console.error("Nodo activo o bot no encontrado (quizás fue eliminado). Reiniciando estado del bot.");
      await chatRef.update({ botState: null });
-     return;
+     botState = { botId: null, activeNodeId: null, lastUpdated: null };
+     
+     // Intentar evaluar gatillos globales de nuevo ya que reseteamos
+     let triggered = false;
+     for (const bot of activeBots) {
+       if (!bot.nodes) continue;
+       const triggers = bot.nodes.filter((n: any) => n.type === 'trigger');
+       for (const t of triggers) {
+         const keywordsRegex = t.data?.label || "";
+         const keywords = keywordsRegex.split(',').map((k: string) => k.trim().toLowerCase());
+         let textToMatch = text.toLowerCase();
+         if (referral?.headline) textToMatch = `${referral.headline} ${text}`.toLowerCase();
+         if (keywords.some((k: string) => k.length > 0 && textToMatch.includes(k))) {
+           botState = { botId: bot.id, activeNodeId: t.id, lastUpdated: FieldValue.serverTimestamp() };
+           currentNode = findNode(botState.botId!, botState.activeNodeId!);
+           triggered = true;
+           break;
+         }
+       }
+       if (triggered) break;
+     }
+
+     if (!triggered) {
+       console.log(`[Flowbot Engine] No se disparó ningún gatillo tras el reset. Transfiriendo a Gemini (Híbrido)`);
+       await runChatbotFlow(input);
+       return;
+     }
   }
 
   const { botId } = botState;
@@ -308,10 +334,14 @@ export async function processFlowbotMessage(input: { phone: string; text: string
 
 }
 
-/** Helper para enviar y guardar el mensaje usando la IA de adminDb */
 async function sendWhatsAppAndSave(phone: string, text: string, channel: string) {
     if (channel === 'whatsapp') {
-      await whatsapp.sendText(phone, text);
+      try {
+        await whatsapp.sendText(phone, text);
+      } catch (err) {
+        console.error(`[WhatsApp API] Error al enviar mensaje real a ${phone}:`, err);
+        // Continuamos para guardar el registro en el CRM de todos modos
+      }
     } // Más canales si aplica
 
     await adminDb!.collection("crm_messages").add({

@@ -243,17 +243,21 @@ export async function runChatbotFlow(input: { phone: string; text: string; chann
       const { metaGraph } = await import('@/lib/meta-graph');
 
       // 4. Enviar mensaje por el canal correcto primero
-      if (channel === 'instagram_comment' || channel === 'facebook_comment') {
-        if (!input.commentId) throw new Error("Falta commentId para poder responder al comentario.");
-        await metaGraph.replyToComment(input.commentId, textToSend);
-      } else if (channel === 'instagram' || channel === 'facebook') {
-        const senderId = input.phone.replace(`${channel}_`, '');
-        await metaGraph.sendDirectMessage(senderId, textToSend);
-      } else {
-        await whatsapp.sendText(input.phone, textToSend);
+      try {
+        if (channel === 'instagram_comment' || channel === 'facebook_comment') {
+          if (!input.commentId) throw new Error("Falta commentId para poder responder al comentario.");
+          await metaGraph.replyToComment(input.commentId, textToSend);
+        } else if (channel === 'instagram' || channel === 'facebook') {
+          const senderId = input.phone.replace(`${channel}_`, '');
+          await metaGraph.sendDirectMessage(senderId, textToSend);
+        } else {
+          await whatsapp.sendText(input.phone, textToSend);
+        }
+        console.log(`✅ Respuesta enviada exitosamente por el canal [${channel}] a ${input.phone}`);
+      } catch (sendError) {
+        console.error(`❌ Error al enviar mensaje real a ${input.phone} (¿token expirado?):`, sendError);
+        // Continuamos para asegurarnos de que quede registrado en el CRM
       }
-
-      console.log(`✅ Respuesta enviada exitosamente por el canal [${channel}] a ${input.phone}`);
 
       // 5. Guardar la respuesta saliente en Firestore (con el formato de la UI)
       await adminDb!.collection("crm_messages").add({

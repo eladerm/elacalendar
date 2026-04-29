@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
-
+import { db } from '@/lib/firebase';
+import { collection, getDocs, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 /**
  * Élapiel Depilación Láser — Bot Maestro Único
  *
@@ -448,13 +447,11 @@ const ELAPIEL_BOT_EDGES = [
 
 export async function POST(req: NextRequest) {
   try {
-    if (!adminDb) {
-      return NextResponse.json({ error: 'Firebase Admin no inicializado' }, { status: 500 });
-    }
+    const chatbotsCol = collection(db, 'crm_chatbots');
 
     // Delete ALL existing bots so we have only ONE master flow
-    const existing = await adminDb.collection('crm_chatbots').get();
-    const deletePromises = existing.docs.map(d => d.ref.delete());
+    const existing = await getDocs(chatbotsCol);
+    const deletePromises = existing.docs.map(d => deleteDoc(d.ref));
     await Promise.all(deletePromises);
 
     const botDoc = {
@@ -467,11 +464,11 @@ export async function POST(req: NextRequest) {
       assignedWaId: '',
       nodes: ELAPIEL_BOT_NODES,
       edges: ELAPIEL_BOT_EDGES,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     };
 
-    const docRef = await adminDb.collection('crm_chatbots').add(botDoc);
+    const docRef = await addDoc(chatbotsCol, botDoc);
 
     return NextResponse.json({
       success: true,
