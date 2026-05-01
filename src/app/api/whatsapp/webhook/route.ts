@@ -101,19 +101,21 @@ export async function POST(request: Request) {
 
                // 3. Ejecutar Lógica de Chatbots
                if (!isBotPaused) {
-                   // A. Intentar Ejecutar Motor Estructurado Visual
-                   const { intercepted } = await evaluateVisualBot(messageText, chatId, adminDb, whatsapp);
+                  console.log(`🤖 Bot ACTIVO para ${chatId}. Evaluando motor visual...`);
+                  // A. Intentar Ejecutar Motor Estructurado Visual
+                  const { intercepted } = await evaluateVisualBot(messageText, chatId, adminDb, whatsapp);
 
-                   // B. Si el flujo estructurado no interceptó el mensaje (ni estaba activo ni detonó), ejecutar IA
-                   if (!intercepted) {
-                      runChatbotFlow({ phone: senderPhone, text: messageText }).catch((err: any) => {
-                        console.error("Error procesando Genkit flow:", err);
-                      });
-                   } else {
-                      console.log("🔀 Motor Visual interceptó y gestionó el flujo estructurado.");
-                   }
+                  // B. Si el flujo estructurado no interceptó el mensaje (ni estaba activo ni detonó), ejecutar IA
+                  if (!intercepted) {
+                     console.log(`🧠 Motor Visual no interceptó. Ejecutando IA (Genkit)...`);
+                     runChatbotFlow({ phone: senderPhone, text: messageText }).catch((err: any) => {
+                       console.error("❌ Error procesando Genkit flow:", err);
+                     });
+                  } else {
+                     console.log("🔀 Motor Visual interceptó y gestionó el flujo estructurado.");
+                  }
                } else {
-                   console.log("⏸️ Bot pausado para este chat. Ignorando auto-respuesta.");
+                  console.log(`⏸️ Bot PAUSADO para el chat ${chatId}. Ignorando auto-respuesta.`);
                }
 
             } catch (error) {

@@ -157,12 +157,33 @@ export default function Home() {
             Sucursal: {selectedBranch}
           </h1>
 
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 p-1 bg-muted rounded-lg shadow-sm border border-border">
+          <div className="flex items-center gap-3">
+            {/* Selector de Vista Estilo Google Calendar */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2 h-10 px-4 min-w-[110px] justify-between font-medium bg-background hover:bg-muted/50 border-border">
+                  {getViewName()}
+                  <ChevronDown className="w-4 h-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[180px] p-2">
+                <DropdownMenuItem onClick={() => setView('day')} className="justify-between rounded-md cursor-pointer py-2">
+                  Día <span className="text-muted-foreground text-xs font-mono font-medium">D</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setView('week')} className="justify-between rounded-md cursor-pointer py-2">
+                  Semana <span className="text-muted-foreground text-xs font-mono font-medium">W</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setView('month')} className="justify-between rounded-md cursor-pointer py-2">
+                  Mes <span className="text-muted-foreground text-xs font-mono font-medium">M</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="flex items-center gap-1 p-1 bg-muted rounded-lg shadow-sm border border-border h-10">
               <Button
                 variant={selectedBranch === "Matriz" ? "default" : "ghost"}
                 onClick={() => setSelectedBranch("Matriz")}
-                className="gap-2 px-2 md:px-3 h-8 text-xs font-semibold"
+                className="gap-2 px-2 md:px-3 h-full text-xs font-semibold"
               >
                 <Building className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Matriz</span>
@@ -171,7 +192,7 @@ export default function Home() {
               <Button
                 variant={selectedBranch === "Valle" ? "default" : "ghost"}
                 onClick={() => setSelectedBranch("Valle")}
-                className="gap-2 px-2 md:px-3 h-8 text-xs font-semibold"
+                className="gap-2 px-2 md:px-3 h-full text-xs font-semibold"
               >
                 <Store className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Valle</span>

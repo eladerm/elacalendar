@@ -65,10 +65,10 @@ interface UserFormDialogProps {
 }
 
 const defaultPermissions: UserPermissions = {
-  calendario: { ver: true, crear: true, editar: true, cancelar: true, eliminar: false, importar: false, exportar: false },
-  clientes: { ver: true, crear: true, editar: true, eliminar: false, importar: false, exportar: false },
-  inventario: { ver: true, crear: false, editar: false, eliminar: false, abrir_terminar: true, estadisticas: false, configuracion: false, entregas_ver: true, entregas_crear: false },
-  servicios: { ver: true, crear: false, editar: false, eliminar: false, importar: false, exportar: false },
+  calendario: { ver: true, crear: true, editar: false, cancelar: false, eliminar: false, importar: false, exportar: false }, // Les dejo 'crear' citas por si acaso, pero sin editar
+  clientes: { ver: true, crear: false, editar: false, eliminar: false, importar: false, exportar: false },
+  inventario: { ver: true, crear: false, editar: false, eliminar: false, abrir_terminar: false, estadisticas: false, configuracion: false, entregas_ver: true, entregas_crear: false },
+  servicios: { ver: false, crear: false, editar: false, eliminar: false, importar: false, exportar: false },
   usuarios: { ver: false, crear: false, editar: false, desactivar: false, ver_actividad: false },
   bitacora: { ver: false, foto_login: true },
   reportes: { ver: false },
@@ -231,15 +231,29 @@ export function UserFormDialog({
   useEffect(() => {
     if (isOpen) {
         if (initialData) {
-            form.reset({
-                name: initialData.name,
-                email: initialData.email,
-                employeeId: initialData.employeeId,
-                role: initialData.role,
-                branch: initialData.branch,
-                password: '',
-                permissions: initialData.permissions || (initialData.role === 'administrador' ? adminPermissions : defaultPermissions),
-            });
+                let mergedPerms: any = {};
+                const baseToUse = initialData.role === 'administrador' ? adminPermissions :
+                                  initialData.role === 'administrador_sucursal' ? { 
+                                      ...defaultPermissions
+                                  } : defaultPermissions;
+
+                if (initialData.permissions) {
+                    for (const [key, defaults] of Object.entries(baseToUse)) {
+                        mergedPerms[key] = { ...(defaults as any), ...((initialData.permissions as any)[key] || {}) };
+                    }
+                } else {
+                    mergedPerms = baseToUse;
+                }
+
+                form.reset({
+                    name: initialData.name,
+                    email: initialData.email,
+                    employeeId: initialData.employeeId,
+                    role: initialData.role,
+                    branch: initialData.branch,
+                    password: '',
+                    permissions: mergedPerms,
+                });
         } else {
             form.reset({
                 name: '',
@@ -259,12 +273,7 @@ export function UserFormDialog({
       form.setValue('permissions', adminPermissions);
     } else if (role === 'administrador_sucursal') {
       form.setValue('permissions', { 
-        ...defaultPermissions, 
-        bitacora: { ver: true, foto_login: true }, 
-        reportes: { ver: true }, 
-        finanzas: { ver: true, exportar: false },
-        crm: { ver: true, chat: true, embudos: true, campanas: false, contactos: true, reportes: true, configuracion: false },
-        facturacion: { ver: true, crear: true, editar: false, eliminar: false }
+        ...defaultPermissions
       });
     } else {
       form.setValue('permissions', defaultPermissions);
@@ -302,12 +311,7 @@ export function UserFormDialog({
 
   const currentRole = form.watch('role');
 
-  const filteredSections = permissionSections.filter(section => {
-    if (currentRole === 'operaria') {
-      return !['usuarios', 'bitacora', 'reportes', 'finanzas', 'crm', 'facturacion'].includes(section.id);
-    }
-    return true;
-  });
+  const filteredSections = permissionSections;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

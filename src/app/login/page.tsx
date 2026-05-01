@@ -98,7 +98,7 @@ export default function LoginPage() {
     <div className="relative min-h-screen w-full flex items-center justify-center font-sans overflow-hidden bg-black">
       {/* Premium Background — fades in smoothly */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-[1.04] animate-in fade-in duration-[2500ms]"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-[1.04] animate-in fade-in duration-1000"
         style={{ backgroundImage: `url(${randomBg})` }}
       />
       

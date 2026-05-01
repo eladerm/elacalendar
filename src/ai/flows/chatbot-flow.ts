@@ -176,6 +176,7 @@ export async function runChatbotFlow(input: { phone: string; text: string; chann
     }
 
     // 1. Recuperar el historial de conversación desde Firestore
+    console.log(`🔍 Buscando historial para ${input.phone}...`);
     const querySnapshot = await adminDb!.collection('crm_messages')
       .where('chatId', '==', input.phone)
       .get();
@@ -190,6 +191,8 @@ export async function runChatbotFlow(input: { phone: string; text: string; chann
       .slice(0, 10)
       .reverse();
 
+    console.log(`📚 Se encontraron ${historyDocs.length} mensajes en el historial.`);
+
     // 2. Formatear el historial para Genkit
     const messagesParams: any[] = [];
     historyDocs.forEach(doc => {
@@ -202,6 +205,15 @@ export async function runChatbotFlow(input: { phone: string; text: string; chann
         });
       }
     });
+
+    // Asegurarse de que el mensaje actual esté incluido (por si Firestore aún no lo indexó)
+    if (messagesParams.length === 0 || (messagesParams[messagesParams.length - 1].role === 'model')) {
+       console.log("🆕 El historial no incluía el mensaje actual o terminó en respuesta del bot. Añadiendo el texto actual.");
+       messagesParams.push({
+         role: 'user',
+         content: [{ text: input.text }]
+       });
+    }
 
     // 3. Llamar a Genkit Gemini
     const { output: aiResponse } = await ai.generate({

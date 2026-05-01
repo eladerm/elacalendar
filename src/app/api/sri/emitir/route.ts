@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { generateInvoice, generateInvoiceXml, signXml, documentReception } from "open-factura";
+export const dynamic = 'force-dynamic';
+// Los imports de open-factura se movieron dentro del POST para evitar errores de ESM en el build de Next.js
+
 import { format } from 'date-fns';
 import fs from 'fs';
 import path from 'path';
@@ -10,6 +12,7 @@ import { sendSriEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
   try {
+    const { generateInvoice, generateInvoiceXml, signXml, documentReception } = await import("open-factura");
     const data = await req.json();
     const { tipo, clienteId, clienteNombre, clienteIdentificacion, clienteEmail, detalles, subtotal0, subtotal15, ivaValor, total } = data;
 

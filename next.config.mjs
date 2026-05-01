@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  transpilePackages: ['open-factura', 'node-fetch'],
+};
 
 export default nextConfig;

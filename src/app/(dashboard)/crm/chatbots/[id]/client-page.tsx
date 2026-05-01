@@ -296,9 +296,9 @@ function DraggablePhone({
                  <span className="italic text-xs font-medium">📷 Imagen adjunta</span>
                </div>
              );
-          } else if (node.type === 'wait') {
-             content = <span className="italic text-slate-400">⏳ Pausa de {node.data?.seconds}s...</span>;
-          } else if (node.type === 'closeTicket' || node.type === 'botHandoff') {
+           } else if (node.type === 'wait') {
+              content = <span className="italic text-slate-400">⏳ Pausa de {String(node.data?.seconds || '')}s...</span>;
+           } else if (node.type === 'closeTicket' || node.type === 'botHandoff') {
              content = <span className="font-semibold text-emerald-600">✅ Chat Resuelto / Transferido</span>;
           } else if (node.type === 'apiCall' || node.type === 'timeRouting' || node.type === 'condition' || node.type === 'assign' || node.type === 'tag') {
              return (
@@ -524,35 +524,7 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
     []
   );
 
-  const onLayout = useCallback(() => {
-    const dagreGraph = new dagre.graphlib.Graph();
-    dagreGraph.setDefaultEdgeLabel(() => ({}));
-    dagreGraph.setGraph({ rankdir: 'TB', nodesep: 100, ranksep: 100 });
 
-    nodes.forEach((node) => {
-      dagreGraph.setNode(node.id, { width: 350, height: 100 });
-    });
-
-    edges.forEach((edge) => {
-      dagreGraph.setEdge(edge.source, edge.target);
-    });
-
-    dagre.layout(dagreGraph);
-
-    const layoutedNodes = nodes.map((node) => {
-      const nodeWithPosition = dagreGraph.node(node.id);
-      return {
-        ...node,
-        position: {
-          x: nodeWithPosition.x - 350 / 2,
-          y: nodeWithPosition.y - 100 / 2,
-        },
-      };
-    });
-
-    setNodes(layoutedNodes);
-    window.requestAnimationFrame(() => fitView({ padding: 0.3, duration: 800, maxZoom: 1 }));
-  }, [nodes, edges, fitView]);
 
   const handleSave = useCallback(async () => {
     if (isSaving) return;
@@ -742,7 +714,7 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
     }
     setSimStep(currentStep);
 
-    if (['capture', 'buttonMessage', 'option'].includes(node.type)) {
+    if (node.type && ['capture', 'buttonMessage', 'option'].includes(node.type as string)) {
       setIsWaitingForInput(true);
       return;
     }
@@ -1002,13 +974,7 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
             <button onClick={() => zoomIn()} title="Acercar" className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
               <ZoomIn className="w-4 h-4" />
             </button>
-            <button
-              onClick={onLayout}
-              title="Auto Ordenar (Árbol)"
-              className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border-r border-slate-200 pr-3"
-            >
-              <LayoutTemplate className="w-4 h-4" />
-            </button>
+
             <button
               onClick={() => fitView({ padding: 0.3, duration: 400, maxZoom: 0.6 })}
               className="text-xs font-bold text-slate-500 hover:text-slate-700 border border-slate-200 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
@@ -1090,10 +1056,7 @@ function FlowInner({ chatbotId }: { chatbotId: string }) {
               <PlayCircle className="w-4 h-4 mr-1.5" />
               {isSimulating ? 'Detener' : 'Simular Flujo'}
             </Button>
-            <Button variant="outline" onClick={onLayout} className="text-slate-600 border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-700 text-sm font-medium px-4 h-9">
-              <LayoutTemplate className="w-4 h-4 mr-1.5" />
-              Ordenar
-            </Button>
+
             <Button variant="ghost" onClick={handleDelete} disabled={isSaving} className="text-red-500 hover:text-red-600 hover:bg-red-50 text-sm font-medium px-4 h-9">
               <Trash2 className="w-4 h-4 mr-1.5" />
               Eliminar

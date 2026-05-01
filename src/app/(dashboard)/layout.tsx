@@ -219,7 +219,23 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
           className="flex-1 overflow-y-auto overflow-x-hidden py-1 flex flex-col items-center gap-px"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {APP_MODULES.map(module => {
+          {APP_MODULES.filter(module => {
+            if (!user) return false;
+            if (user.role === 'administrador') return true;
+
+            let permKey = module.name.toLowerCase();
+            if (['bandeja', 'embudos', 'bots', 'ventas', 'ajustes'].includes(permKey)) permKey = 'crm';
+            if (permKey === 'contactos') permKey = 'clientes';
+            if (permKey === 'facturación') permKey = 'facturacion';
+            if (permKey === 'bitácora') permKey = 'bitacora';
+
+            const modulePerms = (user.permissions as any)?.[permKey];
+            if (modulePerms !== undefined) {
+               return modulePerms?.ver === true;
+            }
+            
+            return ['Calendario', 'Inventario', 'Contactos'].includes(module.name);
+          }).map(module => {
             const isModuleActive = module.href === '/'
               ? pathname === '/'
               : pathname.startsWith(module.href);

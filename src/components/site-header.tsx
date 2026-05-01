@@ -66,23 +66,19 @@ export function SiteHeader({ onAddNewClick, secondaryAction }: SiteHeaderProps) 
     // Si es Administrador General, tiene acceso a TODO por defecto
     if (user.role === 'administrador') return navLinks;
 
-    const isBranchAdmin = user.role === 'administrador_sucursal';
-
     return navLinks.filter(link => {
         // Bitácora solo para administradores (Gral o Sucursal)
-        if (link.key === 'bitacora') return isBranchAdmin;
+        if (link.key === 'bitacora') return user.role === 'administrador_sucursal';
 
         // Verificación de permisos por módulo
         const modulePerms = (user.permissions as any)?.[link.key];
         
-        // Si es Gerente de Sucursal y no tiene el objeto de permisos (compatibilidad), 
-        // le damos acceso a lo básico excepto gestión de usuarios y reportes globales
-        if (!user.permissions && isBranchAdmin) {
-            return !['usuarios', 'bitacora'].includes(link.key);
+        if (modulePerms !== undefined) {
+            return modulePerms?.ver === true;
         }
 
-        // Caso estándar: Basado en el check de "ver" del módulo
-        return modulePerms?.ver === true;
+        // Si el usuario no tiene los permisos configurados en la BD (legacy), solo dejamos los básicos
+        return ['calendario', 'clientes', 'inventario'].includes(link.key);
     });
   }, [user]);
 
