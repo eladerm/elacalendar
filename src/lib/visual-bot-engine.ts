@@ -34,12 +34,19 @@ export async function evaluateVisualBot(
         const bot = bSnap.data();
         if (!bot.nodes) continue;
         
+        console.log(`🧐 Verificando triggers en bot: ${bot.name || bSnap.id}`);
+        
         // Buscar nodos trigger
         const triggerNodes = bot.nodes.filter((n: any) => n.type === 'trigger');
         for (const tNode of triggerNodes) {
           const condition = (tNode.data?.label || "").trim().toLowerCase();
-          // Lógica simple: Si la condición existe y el mensaje incluye la condición
-          if (condition && textNormalized.includes(condition)) {
+          
+          console.log(`   - Evaluando trigger [${condition}] contra mensaje [${textNormalized}]`);
+
+          // Lógica: Si la condición está vacía, es un "catch-all" (Cualquier interacción)
+          // O si el mensaje incluye la palabra clave
+          if (condition === "" || condition === "cualquier interacción" || textNormalized.includes(condition)) {
+             console.log(`✅ Trigger coincidente! Iniciando flujo ${bSnap.id}`);
              activeBotId = bSnap.id;
              botConfig = bot;
              
