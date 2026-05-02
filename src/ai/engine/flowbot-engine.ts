@@ -61,22 +61,21 @@ export async function processFlowbotMessage(input: { phone: string; text: string
 
     // Buscar entre todos los bots si el mensaje dispara algún gatillo
     for (const bot of activeBots) {
-      if (!bot.nodes) continue;
+      if (!bot.nodes || bot.isActive === false) continue; // Solo bots activos
       const triggers = bot.nodes.filter((n: any) => n.type === 'trigger');
       
       for (const t of triggers) {
-        const keywordsRegex = t.data?.label || "";
-        // Simplificado: si contiene la palabra (case insensitive)
-        const keywords = keywordsRegex.split(',').map((k: string) => k.trim().toLowerCase());
+        const condition = (t.data?.label || "").trim().toLowerCase();
         
         let textToMatch = text.toLowerCase();
         if (referral?.headline) {
            textToMatch = `${referral.headline} ${text}`.toLowerCase();
         }
         
-        if (keywords.some((k: string) => k.length > 0 && textToMatch.includes(k))) {
+        // Soporte para catch-all o coincidencia de palabra clave
+        if (condition === "" || condition === "cualquier interacción" || (condition && textToMatch.includes(condition))) {
           // GATILLO ACCIONADO
-          console.log(`⚡ Gatillo activado: Bot [${bot.id}], Nodo [${t.id}] por palabra clave o Anuncio (${referral?.headline || text}).`);
+          console.log(`⚡ Gatillo activado: Bot [${bot.id}], Nodo [${t.id}] por [${condition}] contra [${textToMatch}].`);
           botState = { botId: bot.id, activeNodeId: t.id, lastUpdated: FieldValue.serverTimestamp() };
           triggered = true;
           break;
@@ -88,7 +87,7 @@ export async function processFlowbotMessage(input: { phone: string; text: string
     if (!triggered) {
       // MODO HÍBRIDO: No hay flujo activo y no se activó gatillo. Pasamos el mando a Genkit (Gemini).
       console.log(`[Flowbot Engine] No se disparó ningún gatillo. Transfiriendo a Gemini (Híbrido)`);
-      await runChatbotFlow(input);
+      await runChatbotFlow({ ...input, phone: chatData.waId || phone });
       return;
     }
   }
@@ -128,7 +127,7 @@ export async function processFlowbotMessage(input: { phone: string; text: string
 
      if (!triggered) {
        console.log(`[Flowbot Engine] No se disparó ningún gatillo tras el reset. Transfiriendo a Gemini (Híbrido)`);
-       await runChatbotFlow(input);
+       await runChatbotFlow({ ...input, phone: chatData.waId || phone });
        return;
      }
   }
@@ -162,7 +161,7 @@ export async function processFlowbotMessage(input: { phone: string; text: string
              // Si hay múltiples caminos (condiciones), Gemini debería ayudar si no hay un parser fuerte.
              // Para la primera V1, lo pasaremos a Gemini como Fallback si es complejo.
              console.log(`[Flowbot Engine] Múltiples caminos detectados. Handoff a IA Híbrido.`);
-             await runChatbotFlow(input);
+             await runChatbotFlow({ ...input, phone: chatData.waId || phone });
              return;
          }
       } else {
@@ -199,7 +198,7 @@ export async function processFlowbotMessage(input: { phone: string; text: string
           .replace(/\{\{telefono\}\}/g, phone)
           .replace(/\{\{email\}\}/g, chatData.email || '');
 
-        await sendWhatsAppAndSave(phone, msgText, channel);
+        await sendWhatsAppAndSave(phone, chatData.waId || phone, msgText, channel);
         const edges = findNextEdges(botId!, currentNode.id);
         if (edges.length > 0) {
            botState.activeNodeId = edges[0].target as string;
@@ -215,7 +214,7 @@ export async function processFlowbotMessage(input: { phone: string; text: string
         const buttons: string[] = currentNode.data?.buttons || currentNode.data?.options || [];
         let formattedMsg = msgText + '\n';
         buttons.forEach((b: string, i: number) => { formattedMsg += `\n${i + 1}. ${b}`; });
-        await sendWhatsAppAndSave(phone, formattedMsg, channel);
+        await sendWhatsAppAndSave(phone, chatData.waId || phone, formattedMsg, channel);
         awaitUserInput = true;
         break;
       }
@@ -223,7 +222,7 @@ export async function processFlowbotMessage(input: { phone: string; text: string
       case 'capture': {
         // Pregunta y espera respuesta para guardar en campo CRM
         const question = currentNode.data?.question || '¿Cuál es tu respuesta?';
-        await sendWhatsAppAndSave(phone, question, channel);
+        await sendWhatsAppAndSave(phone, chatData.waId || phone, question, channel);
         awaitUserInput = true;
         break;
       }
@@ -334,20 +333,20 @@ export async function processFlowbotMessage(input: { phone: string; text: string
 
 }
 
-async function sendWhatsAppAndSave(phone: string, text: string, channel: string) {
+async function sendWhatsAppAndSave(chatId: string, waId: string, text: string, channel: string) {
     if (channel === 'whatsapp') {
       try {
-        await whatsapp.sendText(phone, text);
+        console.log(`📤 Enviando mensaje a WA: ${waId}`);
+        await whatsapp.sendText(waId, text);
       } catch (err) {
-        console.error(`[WhatsApp API] Error al enviar mensaje real a ${phone}:`, err);
-        // Continuamos para guardar el registro en el CRM de todos modos
+        console.error(`[WhatsApp API] Error al enviar mensaje real a ${waId}:`, err);
       }
-    } // Más canales si aplica
+    } 
 
     await adminDb!.collection("crm_messages").add({
-      chatId: phone,
+      chatId: chatId,
       from: 'business',
-      to: phone,
+      to: waId,
       body: text,
       type: 'text',
       isIncoming: false,
