@@ -27,9 +27,7 @@ const APP_MODULES = [
   { name: 'Calendario',     href: '/',                  icon: CalendarRange, color: 'text-indigo-600', bg: 'bg-indigo-50', activeBg: 'bg-indigo-600' },
   { name: 'Bandeja',        href: '/crm/chat',          icon: MessageCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', activeBg: 'bg-emerald-600' },
   { name: 'Embudos',        href: '/crm/embudos',       icon: KanbanSquare,  color: 'text-amber-500', bg: 'bg-amber-50', activeBg: 'bg-amber-500' },
-  { name: 'Entrenamiento IA', href: '/crm/asistentes',   icon: BrainCircuit, color: 'text-purple-600', bg: 'bg-purple-50', activeBg: 'bg-purple-600' },
-  { name: 'Automatización',  href: '/crm/automatizacion', icon: Zap,          color: 'text-violet-600', bg: 'bg-violet-50', activeBg: 'bg-violet-600' },
-  { name: 'Bots',           href: '/crm/chatbots',      icon: BotMessageSquare, color: 'text-teal-600', bg: 'bg-teal-50', activeBg: 'bg-teal-600' },
+  { name: 'Chatbots IA',    href: '/crm/chatbots',      icon: BotMessageSquare, color: 'text-teal-600', bg: 'bg-teal-50', activeBg: 'bg-teal-600' },
   { name: 'Contactos',      href: '/crm/contactos',     icon: BookUser,      color: 'text-blue-600', bg: 'bg-blue-50', activeBg: 'bg-blue-600' },
   { name: 'Servicios',      href: '/servicios',         icon: Sparkles,      color: 'text-fuchsia-600', bg: 'bg-fuchsia-50', activeBg: 'bg-fuchsia-600' },
   { name: 'Inventario',     href: '/inventario',        icon: Boxes,         color: 'text-cyan-600', bg: 'bg-cyan-50', activeBg: 'bg-cyan-600' },
@@ -90,18 +88,11 @@ const SUB_LINKS: Record<string, { label: string; href: string, exact?: boolean }
     { label: 'Vista Kanban', href: '/crm/embudos', exact: true },
     { label: 'Vista Lista', href: '/crm/embudos?view=list' },
   ],
-  'Bots': [
+  'Chatbots IA': [
     { label: 'Flujos Visuales', href: '/crm/chatbots', exact: true },
+    { label: 'Entrenamiento (Cerebro)', href: '/crm/asistentes' },
+    { label: 'Reglas de Respuesta', href: '/crm/automatizacion' },
     { label: 'Mensajes Programados', href: '/crm/chatbots?tab=scheduled' },
-  ],
-  'Entrenamiento IA': [
-    { label: 'Cerebro de la IA', href: '/crm/asistentes', exact: true },
-    { label: 'Instrucciones de Voz', href: '/crm/asistentes' },
-    { label: 'Personalidad de Ela', href: '/crm/asistentes' },
-  ],
-  'Automatización': [
-    { label: 'Reglas por Palabras', href: '/crm/automatizacion', exact: true },
-    { label: 'Respuestas Rápidas', href: '/crm/automatizacion' },
   ],
   'Ventas': [
     { label: 'Catálogo de Productos', href: '/crm/ventas', exact: true },
@@ -234,7 +225,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
             if (user.role === 'administrador') return true;
 
             let permKey = module.name.toLowerCase();
-            if (['bandeja', 'embudos', 'bots', 'ventas', 'ajustes', 'ia & auto', 'entrenamiento ia', 'automatización'].includes(permKey)) permKey = 'crm';
+            if (['bandeja', 'embudos', 'chatbots ia', 'ventas', 'ajustes'].includes(permKey)) permKey = 'crm';
             if (permKey === 'contactos') permKey = 'clientes';
             if (permKey === 'facturación') permKey = 'facturacion';
             if (permKey === 'bitácora') permKey = 'bitacora';
@@ -244,7 +235,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
                return modulePerms?.ver === true;
             }
             
-            return ['Calendario', 'Inventario', 'Contactos', 'IA & Auto'].includes(module.name);
+            return ['Calendario', 'Inventario', 'Contactos', 'Chatbots IA'].includes(module.name);
           }).map(module => {
             const isModuleActive = module.href === '/'
               ? pathname === '/'
