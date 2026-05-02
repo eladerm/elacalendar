@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   BookUser, KanbanSquare, Settings, TrendingUp,
   BotMessageSquare, Store,
-  MessageCircle, Sparkles, CalendarRange, FileCheck2, PieChart, Boxes, Activity, Users, LogOut, Search, Bell, UserCog, Zap
+  MessageCircle, Sparkles, CalendarRange, FileCheck2, PieChart, Boxes, Activity, Users, LogOut, Search, Bell, UserCog, Zap, BrainCircuit
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FloatingChat } from '@/components/floating-chat';
@@ -27,7 +27,8 @@ const APP_MODULES = [
   { name: 'Calendario',     href: '/',                  icon: CalendarRange, color: 'text-indigo-600', bg: 'bg-indigo-50', activeBg: 'bg-indigo-600' },
   { name: 'Bandeja',        href: '/crm/chat',          icon: MessageCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', activeBg: 'bg-emerald-600' },
   { name: 'Embudos',        href: '/crm/embudos',       icon: KanbanSquare,  color: 'text-amber-500', bg: 'bg-amber-50', activeBg: 'bg-amber-500' },
-  { name: 'IA & Auto',      href: '/crm/automatizacion', icon: Zap,          color: 'text-violet-600', bg: 'bg-violet-50', activeBg: 'bg-violet-600' },
+  { name: 'Entrenamiento IA', href: '/crm/asistentes',   icon: BrainCircuit, color: 'text-purple-600', bg: 'bg-purple-50', activeBg: 'bg-purple-600' },
+  { name: 'Automatización',  href: '/crm/automatizacion', icon: Zap,          color: 'text-violet-600', bg: 'bg-violet-50', activeBg: 'bg-violet-600' },
   { name: 'Bots',           href: '/crm/chatbots',      icon: BotMessageSquare, color: 'text-teal-600', bg: 'bg-teal-50', activeBg: 'bg-teal-600' },
   { name: 'Contactos',      href: '/crm/contactos',     icon: BookUser,      color: 'text-blue-600', bg: 'bg-blue-50', activeBg: 'bg-blue-600' },
   { name: 'Servicios',      href: '/servicios',         icon: Sparkles,      color: 'text-fuchsia-600', bg: 'bg-fuchsia-50', activeBg: 'bg-fuchsia-600' },
@@ -93,10 +94,14 @@ const SUB_LINKS: Record<string, { label: string; href: string, exact?: boolean }
     { label: 'Flujos Visuales', href: '/crm/chatbots', exact: true },
     { label: 'Mensajes Programados', href: '/crm/chatbots?tab=scheduled' },
   ],
-  'IA & Auto': [
-    { label: 'Reglas Inteligentes', href: '/crm/automatizacion', exact: true },
-    { label: 'Asistentes MIA', href: '/crm/asistentes' },
-    { label: 'Configuración IA', href: '/crm/chatbots?tab=mia' },
+  'Entrenamiento IA': [
+    { label: 'Cerebro de la IA', href: '/crm/asistentes', exact: true },
+    { label: 'Instrucciones de Voz', href: '/crm/asistentes' },
+    { label: 'Personalidad de Ela', href: '/crm/asistentes' },
+  ],
+  'Automatización': [
+    { label: 'Reglas por Palabras', href: '/crm/automatizacion', exact: true },
+    { label: 'Respuestas Rápidas', href: '/crm/automatizacion' },
   ],
   'Ventas': [
     { label: 'Catálogo de Productos', href: '/crm/ventas', exact: true },
@@ -229,7 +234,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
             if (user.role === 'administrador') return true;
 
             let permKey = module.name.toLowerCase();
-            if (['bandeja', 'embudos', 'bots', 'ventas', 'ajustes', 'ia & auto'].includes(permKey)) permKey = 'crm';
+            if (['bandeja', 'embudos', 'bots', 'ventas', 'ajustes', 'ia & auto', 'entrenamiento ia', 'automatización'].includes(permKey)) permKey = 'crm';
             if (permKey === 'contactos') permKey = 'clientes';
             if (permKey === 'facturación') permKey = 'facturacion';
             if (permKey === 'bitácora') permKey = 'bitacora';
