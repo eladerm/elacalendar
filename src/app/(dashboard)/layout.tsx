@@ -90,8 +90,7 @@ const SUB_LINKS: Record<string, { label: string; href: string, exact?: boolean }
   ],
   'Chatbots IA': [
     { label: 'Flujos Visuales', href: '/crm/chatbots', exact: true },
-    { label: 'Entrenamiento (Cerebro)', href: '/crm/asistentes' },
-    { label: 'Reglas de Respuesta', href: '/crm/automatizacion' },
+    { label: 'Entrenamiento (Gia)', href: '/crm/asistentes' },
     { label: 'Mensajes Programados', href: '/crm/chatbots?tab=scheduled' },
   ],
   'Ventas': [
