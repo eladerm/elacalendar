@@ -64,12 +64,22 @@ export default function AssistantGridPage() {
     }
   };
 
+  const { toast } = useToast();
+
   const handleDeleteAssistant = async (id: string) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este asistente IA? Esta acción no se puede deshacer.')) return;
     try {
       await deleteDoc(doc(db, 'crm_ai_assistants', id));
+      toast({
+        title: "Asistente eliminado",
+        description: "El asistente IA se ha borrado correctamente.",
+      });
     } catch (e) {
       console.error("Error deleting assistant", e);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el asistente. Inténtalo de nuevo.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -135,14 +145,17 @@ export default function AssistantGridPage() {
                   </div>
 
                   <div className="p-4 flex items-center justify-between">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => handleDeleteAssistant(ast.id)}
+                      <button 
+                        className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log("🗑️ Intentando eliminar asistente:", ast.id);
+                          handleDeleteAssistant(ast.id);
+                        }}
                       >
                          <Trash2 className="w-4 h-4" />
-                      </Button>
+                      </button>
                      <div className="flex gap-2">
                         <Button size="sm" variant="outline" className="border-border hover:bg-primary hover:text-primary-foreground text-foreground text-xs uppercase font-black transition-colors" asChild>
                            <Link href={`/crm/asistentes/${ast.id}`}>
