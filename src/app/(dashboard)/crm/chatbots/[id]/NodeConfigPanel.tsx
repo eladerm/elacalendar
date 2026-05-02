@@ -101,15 +101,45 @@ export function NodeConfigPanel({
           case 'trigger':
               return (
                   <div className="space-y-4">
+                      <div className="bg-emerald-50/50 p-3.5 rounded-xl border border-emerald-100 space-y-4">
+                          <label className="flex items-center gap-2.5 cursor-pointer">
+                              <input 
+                                  type="checkbox" 
+                                  className="accent-emerald-500 w-4 h-4 cursor-pointer"
+                                  checked={data.startWithAi ?? true}
+                                  onChange={(e) => handleChange('startWithAi', e.target.checked)}
+                              />
+                              <div className="flex flex-col">
+                                  <span className="text-sm font-bold text-slate-700">Iniciar con Bot IA (Gia)</span>
+                                  <span className="text-[10px] text-slate-500">Gia analizará y responderá antes de iniciar el flujo visual.</span>
+                              </div>
+                          </label>
+                          
+                          {(data.startWithAi ?? true) && (
+                              <div className="pt-2 border-t border-emerald-100/50">
+                                  <label className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest block mb-1.5">Calidad de Humanidad</label>
+                                  <select 
+                                      className="w-full bg-white border border-emerald-200 text-slate-700 text-sm rounded-lg p-2 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 font-medium"
+                                      value={data.humanityLevel || 'alta'}
+                                      onChange={(e) => handleChange('humanityLevel', e.target.value)}
+                                  >
+                                      <option value="alta">Alta (Muy empática, cálida y detallada)</option>
+                                      <option value="media">Media (Equilibrada y profesional)</option>
+                                      <option value="baja">Baja (Directa, robótica y concisa)</option>
+                                  </select>
+                              </div>
+                          )}
+                      </div>
+
                       <div>
-                          <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Palabras Clave (Gatillo)</label>
+                          <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Intención / Palabras Clave</label>
                           <textarea 
-                             className={cn("w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none resize-y", isFullscreen ? "min-h-[200px]" : "min-h-[90px]")}
-                             placeholder="Ej: hola, precio, info"
+                             className={cn("w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none resize-y", isFullscreen ? "min-h-[140px]" : "min-h-[70px]")}
+                             placeholder="Ej: precios, agendar, hola"
                              value={data.label || ''}
                              onChange={(e) => handleChange('label', e.target.value)}
                           />
-                          <p className="text-[11px] text-slate-400 mt-1">Escribe las palabras separadas por coma.</p>
+                          <p className="text-[11px] text-slate-400 mt-1">Escribe la intención o palabra clave para activar este flujo.</p>
                       </div>
                   </div>
               );

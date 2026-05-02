@@ -84,7 +84,7 @@ Siempre busca cerrar con una de estas frases:
 - "La evaluación no tiene costo, ¿cuál sucursal te queda más cómoda?"
 `;
 
-export async function runChatbotFlow(input: { phone: string; text: string; channel?: string; commentId?: string }) {
+export async function runChatbotFlow(input: { phone: string; text: string; channel?: string; commentId?: string, availableIntents?: string[] }) {
   try {
     const channel = input.channel || "whatsapp";
     console.log(`🤖 Iniciando Flow Genkit para el ID: ${input.phone} en canal: ${channel}`);
@@ -216,15 +216,36 @@ export async function runChatbotFlow(input: { phone: string; text: string; chann
        });
     }
 
-    // 3. Llamar a Genkit Gemini
+    // 3. Llamar a Genkit Gemini con Capacidades de Enrutamiento
+    const intentsText = input.availableIntents && input.availableIntents.length > 0 
+      ? input.availableIntents.join('\n')
+      : `- "saludo": El cliente solo saluda.
+- "precios": Pregunta por costos o promociones.
+- "agendar": Quiere una cita o evaluación.
+- "info_tratamiento": Quiere saber detalles técnicos de un servicio.
+- "desconocido": No encaja en las anteriores.`;
+
     const { output: aiResponse } = await ai.generate({
-      system: dynamicSystemPrompt + "\n\nREGLA: Analiza si el cliente está frustrado o pide explícitamente a un humano. Si es así, marca requiereHumano en true.",
+      system: dynamicSystemPrompt + `
+\n\nREGLA DE ENRUTAMIENTO:
+Analiza el mensaje del cliente y clasifica su intención.
+- Si el cliente saluda o charla: intenta responder amablemente.
+- Si el cliente tiene una duda específica que el Bot Maestro puede resolver: activa el flujo correspondiente.
+- Si el cliente está frustrado o pide humano: marca requiereHumano en true.
+- IMPORTANTE: Si vas a activar un flujo, ADAPTA TU RESPUESTA INICIAL a la "Calidad de humanidad exigida" por ese flujo.
+
+INTENCIONES DISPONIBLES (Flujos Visuales Activos):
+${intentsText}
+- "saludo": Solo saludo o charla casual.
+- "desconocido": No encaja en ninguna.`,
       messages: messagesParams,
       output: {
         schema: z.object({
-          mensajeCliente: z.string().describe("El mensaje que se le enviará al cliente. Si requiereHumano es true, puede ser breve indicando que lo transferirás."),
-          requiereHumano: z.boolean().describe("true si el cliente está frustrado, tiene queja médica o exige a un humano."),
-          resumenContexto: z.string().describe("Breve resumen interno de por qué se transfiere el chat al asesor. Ej: Queja de precio.")
+          mensajeCliente: z.string().describe("El mensaje para el cliente (Adaptado al nivel de humanidad si activa un flujo)."),
+          intent: z.string().optional().describe("La intención detectada, usando EXACTAMENTE una de las Intenciones Disponibles o 'saludo' o 'desconocido'."),
+          targetFlowId: z.string().optional().describe("ID del flujo visual al que se debe saltar si aplica."),
+          requiereHumano: z.boolean().describe("true si pide humano o queja médica."),
+          resumenContexto: z.string().describe("Breve resumen interno.")
         })
       },
       config: {
@@ -290,6 +311,8 @@ export async function runChatbotFlow(input: { phone: string; text: string; chann
          lastMessage: textToSend,
          lastTimestamp: FieldValue.serverTimestamp()
       });
+
+      return aiResponse; // Devolver la respuesta estructurada para que el engine la use
     }
 
   } catch (error) {

@@ -90,7 +90,7 @@ export default function AssistantConfigPage({ params }: { params: { id: string }
       const docRef = doc(db, 'crm_ai_assistants', ast.id);
       const { id, ...data } = ast;
       await updateDoc(docRef, data);
-      router.push('/crm/asistentes');
+      router.push('/crm/chatbots?tab=training');
     } catch (error) {
       console.error(error);
     } finally {
@@ -253,12 +253,12 @@ export default function AssistantConfigPage({ params }: { params: { id: string }
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild className="text-muted-foreground hover:text-foreground rounded-xl">
-            <Link href="/crm/asistentes"><ArrowLeft className="w-5 h-5" /></Link>
+            <Link href="/crm/chatbots?tab=training"><ArrowLeft className="w-5 h-5" /></Link>
           </Button>
           <div>
             <h1 className="text-xl font-black text-foreground italic uppercase flex items-center gap-2">
               <BrainCircuit className="w-6 h-6 text-primary" />
-              {ast.name}
+              Gia: {ast.name}
               <span className={cn(
                 "text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-widest border not-italic",
                 ast.active 
@@ -348,7 +348,7 @@ export default function AssistantConfigPage({ params }: { params: { id: string }
                     value={ast.systemPrompt}
                     onChange={e => setAst({...ast, systemPrompt: e.target.value})}
                     className="bg-background border-border text-foreground min-h-[160px] text-sm focus-visible:ring-primary leading-relaxed"
-                    placeholder="Ej: Eres Ela, la asistente virtual de ÉLAPIEL, una clínica de depilación láser y rejuvenecimiento facial. Tu misión es captar leads y agendar citas..."
+                    placeholder="Ej: Eres Gia, la asistente virtual de ÉLAPIEL, una clínica de depilación láser y rejuvenecimiento facial. Tu misión es captar leads y agendar citas..."
                   />
                   <p className="text-[10px] text-muted-foreground mt-2 italic">
                     Define el rol, la personalidad y el contexto de tu agente. Esto guía todas sus respuestas.

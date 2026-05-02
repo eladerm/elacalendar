@@ -54,41 +54,106 @@ export async function processFlowbotMessage(input: { phone: string; text: string
   };
 
   // ============================================
-  // LÓGICA DE GATILLOS GLOBALES (Si no hay flujo activo)
+  // LÓGICA DE INICIO INTELIGENTE (IA PRIMERO)
   // ============================================
   if (!botState.botId || !botState.activeNodeId) {
-    let triggered = false;
+    let triggeredDirectly = false;
 
-    // Buscar entre todos los bots si el mensaje dispara algún gatillo
+    // 1. EVALUAR GATILLOS ESTRICTOS (Bypass de IA: startWithAi = false)
     for (const bot of activeBots) {
-      if (!bot.nodes || bot.isActive === false) continue; // Solo bots activos
-      const triggers = bot.nodes.filter((n: any) => n.type === 'trigger');
+      if (!bot.nodes || bot.isActive === false) continue;
+      const strictTriggers = bot.nodes.filter((n: any) => n.type === 'trigger' && n.data?.startWithAi === false);
       
-      for (const t of triggers) {
-        const condition = (t.data?.label || "").trim().toLowerCase();
-        
+      for (const t of strictTriggers) {
+        const rawLabel = (t.data?.label || "").toLowerCase().trim();
         let textToMatch = text.toLowerCase();
-        if (referral?.headline) {
-           textToMatch = `${referral.headline} ${text}`.toLowerCase();
+        
+        // Si viene de una propaganda de Meta, le inyectamos una etiqueta oculta para atraparlo fácilmente
+        if (referral) {
+           textToMatch = `[meta_ad] ${referral.headline || ''} ${text}`.toLowerCase();
         }
         
-        // Soporte para catch-all o coincidencia de palabra clave
-        if (condition === "" || condition === "cualquier interacción" || (condition && textToMatch.includes(condition))) {
-          // GATILLO ACCIONADO
-          console.log(`⚡ Gatillo activado: Bot [${bot.id}], Nodo [${t.id}] por [${condition}] contra [${textToMatch}].`);
+        // Es un catch-all si está vacío o dice explícitamente "cualquier interacción"
+        if (rawLabel === "" || rawLabel === "cualquier interacción" || rawLabel === "cualquier interaccion") {
+            triggeredDirectly = true;
+        } else {
+            const keywords = rawLabel.split(',').map((k:string) => k.trim()).filter(Boolean);
+            if (keywords.some((k:string) => textToMatch.includes(k))) {
+              triggeredDirectly = true;
+            }
+        }
+
+        if (triggeredDirectly) {
+          console.log(`⚡ Gatillo Directo activado (Sin IA o Catch-All): Bot [${bot.id}]`);
           botState = { botId: bot.id, activeNodeId: t.id, lastUpdated: FieldValue.serverTimestamp() };
-          triggered = true;
+          
+          const nextEdges = findNextEdges(bot.id, t.id);
+          if (nextEdges.length > 0) {
+             botState.activeNodeId = nextEdges[0].target;
+             currentNode = findNode(bot.id, botState.activeNodeId!);
+          }
           break;
         }
       }
-      if (triggered) break;
+      if (triggeredDirectly) break;
     }
 
-    if (!triggered) {
-      // MODO HÍBRIDO: No hay flujo activo y no se activó gatillo. Pasamos el mando a Genkit (Gemini).
-      console.log(`[Flowbot Engine] No se disparó ningún gatillo. Transfiriendo a Gemini (Híbrido)`);
-      await runChatbotFlow({ ...input, phone: chatData.waId || phone });
-      return;
+    // 2. SI NO HUBO MATCH ESTRICTO, CONSULTAR A GIA (ENRUTAMIENTO IA)
+    if (!triggeredDirectly) {
+      console.log(`[Flowbot Engine] Consultando a Gia (IA)...`);
+      
+      // Recopilar intenciones disponibles de los flujos que SÍ usan IA
+      let availableIntents: string[] = [];
+      for (const bot of activeBots) {
+        if (!bot.nodes || bot.isActive === false) continue;
+        const aiTriggers = bot.nodes.filter((n: any) => n.type === 'trigger' && n.data?.startWithAi !== false);
+        for (const t of aiTriggers) {
+           const humanity = t.data?.humanityLevel || 'alta';
+           const label = t.data?.label || 'desconocido';
+           availableIntents.push(`- "${label}" (Calidad de humanidad exigida: ${humanity})`);
+        }
+      }
+
+      // Llamamos a Gia con las opciones dinámicas
+      const aiResult = await runChatbotFlow({ 
+         ...input, 
+         phone: chatData.waId || phone,
+         availableIntents 
+      });
+      
+      if (aiResult && aiResult.intent && aiResult.intent !== 'saludo' && aiResult.intent !== 'desconocido') {
+        console.log(`🎯 Gia detectó intención estratégica: "${aiResult.intent}". Buscando flujo...`);
+        
+        let foundBot = null;
+        let foundTrigger = null;
+
+        for (const bot of activeBots) {
+          if (!bot.nodes || bot.isActive === false) continue;
+          const trigger = bot.nodes.find((n: any) => 
+            n.type === 'trigger' && 
+            (n.data?.startWithAi !== false) &&
+            (n.data?.label || "").toLowerCase().includes(aiResult.intent!)
+          );
+          if (trigger) {
+            foundBot = bot;
+            foundTrigger = trigger;
+            break;
+          }
+        }
+
+        if (foundBot && foundTrigger) {
+          console.log(`⚡ Auto-activando flujo: [${foundBot.name}] por intención [${aiResult.intent}]`);
+          botState = { botId: foundBot.id, activeNodeId: foundTrigger.id, lastUpdated: FieldValue.serverTimestamp() };
+          
+          const nextEdges = findNextEdges(foundBot.id, foundTrigger.id);
+          if (nextEdges.length > 0) {
+             botState.activeNodeId = nextEdges[0].target;
+             currentNode = findNode(foundBot.id, botState.activeNodeId!);
+          }
+        }
+      } else {
+        return;
+      }
     }
   }
 
