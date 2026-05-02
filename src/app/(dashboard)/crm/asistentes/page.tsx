@@ -17,6 +17,8 @@ import { collection, onSnapshot, query, addDoc, serverTimestamp } from 'firebase
 import { db } from '@/lib/firebase';
 import type { AIAssistantConfig } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AssistantGridPage() {
   const [assistants, setAssistants] = useState<AIAssistantConfig[]>([]);
@@ -38,10 +40,10 @@ export default function AssistantGridPage() {
 
   const handleCreateAssistant = async () => {
     const newAst: Partial<AIAssistantConfig> = {
-      name: `Asistente IA ${assistants.length + 1}`,
+      name: `Asistente Gia ${assistants.length + 1}`,
       active: false,
       model: 'gemini-1.5-pro',
-      systemPrompt: 'Eres Ela, la asistente virtual de ÉLAPIEL, una clínica especializada en depilación láser y rejuvenecimiento facial. Tu misión principal es captar leads, resolver dudas y agendar citas gratuitas de evaluación.',
+      systemPrompt: 'Eres Gia, la asistente virtual de ÉLAPIEL, una clínica especializada en depilación láser y rejuvenecimiento facial. Tu misión principal es captar leads, resolver dudas y agendar citas gratuitas de evaluación.',
       temperature: 0.7,
       maxTokens: 1000,
       assignedWaId: "",
@@ -59,6 +61,15 @@ export default function AssistantGridPage() {
       router.push(`/crm/asistentes/${docRef.id}`);
     } catch (e) {
       console.error("Error creating assistant", e);
+    }
+  };
+
+  const handleDeleteAssistant = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este asistente IA? Esta acción no se puede deshacer.')) return;
+    try {
+      await deleteDoc(doc(db, 'crm_ai_assistants', id));
+    } catch (e) {
+      console.error("Error deleting assistant", e);
     }
   };
 
@@ -124,9 +135,14 @@ export default function AssistantGridPage() {
                   </div>
 
                   <div className="p-4 flex items-center justify-between">
-                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                     </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeleteAssistant(ast.id)}
+                      >
+                         <Trash2 className="w-4 h-4" />
+                      </Button>
                      <div className="flex gap-2">
                         <Button size="sm" variant="outline" className="border-border hover:bg-primary hover:text-primary-foreground text-foreground text-xs uppercase font-black transition-colors" asChild>
                            <Link href={`/crm/asistentes/${ast.id}`}>
