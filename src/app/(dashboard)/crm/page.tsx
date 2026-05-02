@@ -12,7 +12,8 @@ import {
   LayoutDashboard,
   CheckCircle2,
   CalendarDays,
-  Megaphone
+  Megaphone,
+  Zap
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
