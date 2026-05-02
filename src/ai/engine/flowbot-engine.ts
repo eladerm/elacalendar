@@ -355,7 +355,7 @@ async function sendWhatsAppAndSave(chatId: string, waId: string, text: string, c
       timestamp: FieldValue.serverTimestamp()
     });
     
-    await adminDb!.collection("crm_chats").doc(phone).update({
+    await adminDb!.collection("crm_chats").doc(chatId).update({
        lastMessage: text,
        lastTimestamp: FieldValue.serverTimestamp()
     });
