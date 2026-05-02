@@ -174,6 +174,14 @@ export default function CRMDashboard() {
                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Añade y etiqueta leads directos a tu embudo.</p>
               </CardContent>
           </Card>
+
+          <Card className="bg-card border-border hover:bg-accent hover:text-accent-foreground relative overflow-hidden group cursor-pointer" onClick={()=>router.push('/crm/automatizacion')}>
+              <CardContent className="p-8">
+                 <Zap className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
+                 <h3 className="text-xl font-black text-foreground uppercase italic mb-2">Automatización</h3>
+                 <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Reglas de respuesta rápida por palabras clave.</p>
+              </CardContent>
+          </Card>
       </div>
 
     </div>

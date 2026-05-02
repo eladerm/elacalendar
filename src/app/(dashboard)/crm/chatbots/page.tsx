@@ -115,6 +115,14 @@ export default function ChatbotGridPage() {
             <Download className="w-4 h-4 mr-2" />
             {isImporting ? 'Importando...' : 'Importar Flujo Élapiel 🪄'}
           </Button>
+          <Button 
+            onClick={() => router.push('/crm/automatizacion')}
+            variant="outline"
+            className="border-amber-500/50 text-amber-600 hover:bg-amber-500/10 font-semibold px-4 rounded-xl h-11"
+          >
+            <Zap className="w-4 h-4 mr-2" />
+            Ver Reglas Automáticas
+          </Button>
           <Button onClick={handleCreateBot} className="bg-[#25D366] hover:bg-[#1da851] text-white font-semibold shadow-md px-6 rounded-xl h-11">
              <Plus className="w-5 h-5 mr-2" /> Crear Flujo
           </Button>

@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { Plus, LogOut, User as UserIcon, Calendar, Users, Briefcase, FileText, BarChart2, Package, MessageCircle } from 'lucide-react';
+import { Plus, LogOut, User as UserIcon, Calendar, Users, Briefcase, FileText, BarChart2, Package, MessageCircle, Bot, Zap } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,8 @@ const navLinks = [
   { href: "/", icon: Calendar, label: "Calendario", key: 'calendario' },
   { href: "/facturacion", icon: FileText, label: "Facturación", key: 'facturacion' },
   { href: "/crm", icon: MessageCircle, label: "CRM", key: 'crm' },
+  { href: "/crm/chatbots", icon: Bot, label: "Chatbots", key: 'chatbots' },
+  { href: "/crm/automatizacion", icon: Zap, label: "Automatización", key: 'automatizacion' },
   { href: "/clientes", icon: Users, label: "Clientes", key: 'clientes' },
   { href: "/inventario", icon: Package, label: "Inventario", key: 'inventario' },
   { href: "/servicios", icon: Briefcase, label: "Servicios", key: 'servicios' },
