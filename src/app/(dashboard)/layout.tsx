@@ -239,7 +239,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
                return modulePerms?.ver === true;
             }
             
-            return ['Calendario', 'Inventario', 'Contactos'].includes(module.name);
+            return ['Calendario', 'Inventario', 'Contactos', 'IA & Auto'].includes(module.name);
           }).map(module => {
             const isModuleActive = module.href === '/'
               ? pathname === '/'
@@ -288,13 +288,6 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
           })}
         </div>
 
-        {/* BOTTOM: AI */}
-        <div className="shrink-0 border-t border-[var(--border-light)] py-1 flex flex-col items-center">
-          <Link href="/crm/asistentes" title="Asistente Ela AI"
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-amber-500 hover:bg-amber-50 transition-colors">
-            <Sparkles className="w-[15px] h-[15px]" strokeWidth={2} />
-          </Link>
-        </div>
       </aside>
 
       {/* ══ MAIN CONTENT AREA ═══════════════════════════════════════════════ */}
