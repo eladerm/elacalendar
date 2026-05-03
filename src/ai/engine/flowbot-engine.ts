@@ -34,6 +34,7 @@ export async function processFlowbotMessage(input: { phone: string; text: string
   }
 
   let botState: BotState = chatData.botState || { botId: null, activeNodeId: null, lastUpdated: null };
+  let currentNode: any = undefined;
 
   // 2. Cargar todos los flujos activos (temporalmente cargaremos todos los de crm_chatbots y asumiremos que queremos evaluar gatillos globales)
   // En producción, podrías filtrar solo isPublic == true
@@ -87,9 +88,9 @@ export async function processFlowbotMessage(input: { phone: string; text: string
           console.log(`⚡ Gatillo Directo activado (Sin IA o Catch-All): Bot [${bot.id}]`);
           botState = { botId: bot.id, activeNodeId: t.id, lastUpdated: FieldValue.serverTimestamp() };
           
-          const nextEdges = findNextEdges(bot.id, t.id);
-          if (nextEdges.length > 0) {
-             botState.activeNodeId = nextEdges[0].target;
+          const nextEdgesDirect = findNextEdges(bot.id, t.id);
+          if (nextEdgesDirect.length > 0) {
+             botState.activeNodeId = nextEdgesDirect[0].target;
              currentNode = findNode(bot.id, botState.activeNodeId!);
           }
           break;
@@ -145,9 +146,9 @@ export async function processFlowbotMessage(input: { phone: string; text: string
           console.log(`⚡ Auto-activando flujo: [${foundBot.name}] por intención [${aiResult.intent}]`);
           botState = { botId: foundBot.id, activeNodeId: foundTrigger.id, lastUpdated: FieldValue.serverTimestamp() };
           
-          const nextEdges = findNextEdges(foundBot.id, foundTrigger.id);
-          if (nextEdges.length > 0) {
-             botState.activeNodeId = nextEdges[0].target;
+          const nextEdgesAi = findNextEdges(foundBot.id, foundTrigger.id);
+          if (nextEdgesAi.length > 0) {
+             botState.activeNodeId = nextEdgesAi[0].target;
              currentNode = findNode(foundBot.id, botState.activeNodeId!);
           }
         }
@@ -163,7 +164,7 @@ export async function processFlowbotMessage(input: { phone: string; text: string
   // Entramos aquí si hay un gatillo activado recién o si el usuario ya venía atascado en un nodo.
   // En Mercately, si estás atorado en un nodo de Menú, se espera que elijas un número/condición.
 
-  let currentNode = botState.botId ? findNode(botState.botId, botState.activeNodeId!) : undefined;
+  if (!currentNode) currentNode = botState.botId ? findNode(botState.botId, botState.activeNodeId!) : undefined;
   
   if (botState.botId && !currentNode) {
      console.error("Nodo activo o bot no encontrado (quizás fue eliminado). Reiniciando estado del bot.");
