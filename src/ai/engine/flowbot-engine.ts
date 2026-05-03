@@ -153,11 +153,8 @@ export async function processFlowbotMessage(input: { phone: string; text: string
              currentNode = findNode(foundBot.id, botState.activeNodeId!);
           }
         } else {
-          // No hay flujo para la intención → Gia responde directamente
-          console.log(`[Flowbot Engine] No hay flujo para intención "${aiResult.intent}". Gia responde directamente.`);
-          if (aiResult.response) {
-            await sendWhatsAppAndSave(phone, chatData.waId || phone, aiResult.response, channel);
-          }
+          // No hay flujo para la intención → Gia ya envió su respuesta en runChatbotFlow
+          console.log(`[Flowbot Engine] No hay flujo para intención "${aiResult?.intent}". Gia ya respondió. Fin.`);
           return;
         }
       } else {
