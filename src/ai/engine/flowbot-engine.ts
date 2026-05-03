@@ -122,6 +122,7 @@ export async function processFlowbotMessage(input: { phone: string; text: string
          availableIntents 
       });
       
+      // Si Gia encontró una intención estratégica → buscar el flujo correspondiente
       if (aiResult && aiResult.intent && aiResult.intent !== 'saludo' && aiResult.intent !== 'desconocido') {
         console.log(`🎯 Gia detectó intención estratégica: "${aiResult.intent}". Buscando flujo...`);
         
@@ -151,10 +152,47 @@ export async function processFlowbotMessage(input: { phone: string; text: string
              botState.activeNodeId = nextEdgesAi[0].target;
              currentNode = findNode(foundBot.id, botState.activeNodeId!);
           }
+        } else {
+          // No hay flujo para la intención → Gia responde directamente
+          console.log(`[Flowbot Engine] No hay flujo para intención "${aiResult.intent}". Gia responde directamente.`);
+          if (aiResult.response) {
+            await sendWhatsAppAndSave(phone, chatData.waId || phone, aiResult.response, channel);
+          }
+          return;
         }
       } else {
-        return;
+        // Intención es saludo/desconocido → buscar catch-all primero, si no, Gia ya respondió sola
+        console.log(`[Flowbot Engine] Intención general (${aiResult?.intent || 'none'}). Buscando catch-all...`);
+        
+        // Buscar un flujo con trigger vacío (catch-all para cualquier mensaje)
+        let catchAllBot = null;
+        let catchAllTrigger = null;
+        for (const bot of activeBots) {
+          if (!bot.nodes || bot.isActive === false) continue;
+          const trigger = bot.nodes.find((n: any) => 
+            n.type === 'trigger' && 
+            (!n.data?.label || n.data.label.trim() === '')
+          );
+          if (trigger) { catchAllBot = bot; catchAllTrigger = trigger; break; }
+        }
+
+        if (catchAllBot && catchAllTrigger) {
+          // Hay un flujo catch-all configurado → activarlo
+          console.log(`⚡ Catch-all activado: [${catchAllBot.name}]`);
+          botState = { botId: catchAllBot.id, activeNodeId: catchAllTrigger.id, lastUpdated: FieldValue.serverTimestamp() };
+          const nextEdgesCatch = findNextEdges(catchAllBot.id, catchAllTrigger.id);
+          if (nextEdgesCatch.length > 0) {
+            botState.activeNodeId = nextEdgesCatch[0].target;
+            currentNode = findNode(catchAllBot.id, botState.activeNodeId!);
+          }
+        } else {
+          // No hay catch-all → Gia ya envió la respuesta directamente (runChatbotFlow la mandó)
+          console.log(`[Flowbot Engine] Gia manejó el saludo/mensaje general directamente. Fin.`);
+          return;
+        }
       }
+
+
     }
   }
 
