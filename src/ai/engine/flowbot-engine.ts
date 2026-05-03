@@ -202,40 +202,32 @@ export async function processFlowbotMessage(input: { phone: string; text: string
 
   // Si ESTÁBAMOS esperando una respuesta interactiva en el paso anterior
   // Ejemplo: Estábamos en un "ButtonMessage", evaluemos las opciones
-  if (currentNode.type === 'buttonMessage') {
+  if (currentNode && currentNode.type === 'buttonMessage') {
       const nextEdges = findNextEdges(botId!, currentNode.id);
       
-      // Aquí se debería hacer match entre lo que tipeó el usuario y los labels/handles del edge.
-      // Mercately usualmente espera 1, 2, 3 o el texto exacto.
-      // Por simplicidad para el engine:
-      // Trataremos de verificar si el usuario eligió una opción válida por la etiqueta del Edge (sourceHandle o etiqueta de validación).
-      // PERO, la UI de ReactFlow no asocia las respuestas del botón directamente siempre.
-      // MODO HÍBRIDO: si no se puede rutear o el menú falla, lanzamos Gemini dándole contexto.
       console.log(`[Flowbot Engine] Usuario estaba en nodo ButtonMessage. Verificando condición: "${text}"`);
       
-      // Asumiremos que el botón elegido avanza. Como no hemos configurado SourceHandles complejos en la UI aún,
-      // PONGAMOS A GEMINI A EVALUAR por nosotros de forma híbrida e inteligente en vez de hacer reglas duras tontas.
-      
-      // [Bypass Híbrido Temporal]
-      // Si el edge simplemente avanza a un Condition o a un Message genérico sin importar la respuesta.
       if (nextEdges.length > 0) {
-         // Hay un camino a seguir. Si es 1 solo camino, lo seguimos obligatoriamente.
          if (nextEdges.length === 1) {
              botState.activeNodeId = nextEdges[0].target;
              currentNode = findNode(botId!, botState.activeNodeId!);
          } else {
-             // Si hay múltiples caminos (condiciones), Gemini debería ayudar si no hay un parser fuerte.
-             // Para la primera V1, lo pasaremos a Gemini como Fallback si es complejo.
              console.log(`[Flowbot Engine] Múltiples caminos detectados. Handoff a IA Híbrido.`);
              await runChatbotFlow({ ...input, phone: chatData.waId || phone });
              return;
          }
       } else {
-         // No hay más camino, terminamos flujo
          console.log(`[Flowbot Engine] Flujo termina aquí.`);
          await chatRef.update({ botState: null });
          return;
       }
+  }
+
+  // Si después de todo el análisis no hay nodo, intentar Gia como fallback
+  if (!currentNode) {
+    console.log(`[Flowbot Engine] Sin nodo activo tras evaluación de gatillos. Delegando a Gia...`);
+    await runChatbotFlow({ ...input, phone: chatData.waId || phone });
+    return;
   }
 
   // Bucle de Ejecución Continua (Salta nodos hasta que requiera esperar input de usuario)
